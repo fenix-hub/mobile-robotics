@@ -1,0 +1,40 @@
+# ROS 2 Foxy Workspace
+
+# Build artifacts
+build/
+install/
+log/
+
+# CMake intermediate files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Python cache and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and editor folders
+.vscode/
+.idea/
+
+# ROS-specific
+.ros/
+
+# Test and coverage
+.coverage
+.pytest_cache/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Optional environment files
+env*/
+
+# Ignore swap files, temp files
+*~
+*.swp
+*.tmp

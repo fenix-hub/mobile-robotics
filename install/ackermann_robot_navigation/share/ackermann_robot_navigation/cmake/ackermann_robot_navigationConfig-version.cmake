@@ -1,1 +1,0 @@
-/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation/ament_cmake_core/ackermann_robot_navigationConfig-version.cmake

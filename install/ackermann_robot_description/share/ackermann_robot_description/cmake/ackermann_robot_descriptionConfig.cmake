@@ -1,1 +1,0 @@
-/home/fenixhub/ackermann_ws/build/ackermann_robot_description/ament_cmake_core/ackermann_robot_descriptionConfig.cmake

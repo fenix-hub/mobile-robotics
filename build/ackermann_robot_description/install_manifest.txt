@@ -1,3 +1,0 @@
-/home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/launch/launch/spawn_ackermann.launch.py
-/home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/launch/launch/ackermann_controllers.launch.py
-/home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/worlds/empty.world

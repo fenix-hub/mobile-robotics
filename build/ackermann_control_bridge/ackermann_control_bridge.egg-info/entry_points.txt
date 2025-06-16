@@ -1,3 +1,0 @@
-[console_scripts]
-ackermann_bridge_node = ackermann_control_bridge.ackermann_bridge_node:main
-

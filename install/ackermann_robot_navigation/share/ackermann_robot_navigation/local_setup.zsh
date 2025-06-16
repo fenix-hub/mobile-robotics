@@ -1,1 +1,0 @@
-/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation/ament_cmake_environment_hooks/local_setup.zsh

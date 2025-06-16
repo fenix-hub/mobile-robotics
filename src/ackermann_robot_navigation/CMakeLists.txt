@@ -56,5 +56,12 @@ install(
   FILES_MATCHING PATTERN "*.launch.py"
 )
 
+# Install RViz configuration files
+install(
+  DIRECTORY rviz
+  DESTINATION share/${PROJECT_NAME}/rviz
+  FILES_MATCHING PATTERN "*.rviz"
+)
+
 
 ament_package()

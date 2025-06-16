@@ -42,15 +42,14 @@ class AckermannBridge(Node):
 
         # Handle straight line motion (no turning)
         if abs(angular_vel) < 1e-6:
-            # Straight line motion
             wheel_angular_vel = linear_vel / self.wheel_radius
             steering_angle_left = 0.0
             steering_angle_right = 0.0
-            
+
             # Both rear wheels same speed
             rear_left_vel = wheel_angular_vel
             rear_right_vel = wheel_angular_vel
-            
+
         else:
             # Calculate turning radius from vehicle center
             if abs(linear_vel) < 1e-6:
@@ -61,41 +60,26 @@ class AckermannBridge(Node):
                 rear_right_vel = 0.0
             else:
                 # Normal Ackermann steering calculation
-                turn_radius = linear_vel / angular_vel  # Radius from vehicle center
-                
-                # Calculate individual wheel speeds and steering angles
-                # For rear wheels (differential drive on rear axle)
-                if turn_radius > 0:  # Left turn
-                    # Inner wheel (left) slower, outer wheel (right) faster
-                    left_turn_radius = turn_radius - self.track_width / 2
-                    right_turn_radius = turn_radius + self.track_width / 2
-                else:  # Right turn
-                    # Inner wheel (right) slower, outer wheel (left) faster
-                    left_turn_radius = turn_radius + self.track_width / 2
-                    right_turn_radius = turn_radius - self.track_width / 2
-                
-                # Calculate rear wheel angular velocities
-                rear_left_vel = (angular_vel * left_turn_radius) / self.wheel_radius
-                rear_right_vel = (angular_vel * right_turn_radius) / self.wheel_radius
-                
-                # Calculate front wheel steering angles (Ackermann geometry)
+                turn_radius = linear_vel / angular_vel
+
+                # Rear wheel angular velocities using differential drive model
+                rear_left_vel = (linear_vel - angular_vel * self.track_width / 2) / self.wheel_radius
+                rear_right_vel = (linear_vel + angular_vel * self.track_width / 2) / self.wheel_radius
+
+                # Front wheel steering angles (Ackermann geometry)
                 L = self.wheelbase
                 W = self.track_width
-                
-                if turn_radius > 0:  # Left turn
-                    # Left wheel (inner) has larger steering angle
-                    steering_angle_left = math.atan2(L, abs(turn_radius) - W/2)
-                    steering_angle_right = math.atan2(L, abs(turn_radius) + W/2)
-                    # Preserve sign for left turn
-                    steering_angle_left = math.copysign(steering_angle_left, angular_vel)
-                    steering_angle_right = math.copysign(steering_angle_right, angular_vel)
-                else:  # Right turn  
-                    # Right wheel (inner) has larger steering angle
-                    steering_angle_left = math.atan2(L, abs(turn_radius) + W/2)
-                    steering_angle_right = math.atan2(L, abs(turn_radius) - W/2)
-                    # Preserve sign for right turn
-                    steering_angle_left = math.copysign(steering_angle_left, angular_vel)
-                    steering_angle_right = math.copysign(steering_angle_right, angular_vel)
+                r_abs = abs(turn_radius)
+
+                if angular_vel > 0:  # Left turn
+                    steering_angle_left = math.atan2(L, r_abs - W / 2)
+                    steering_angle_right = math.atan2(L, r_abs + W / 2)
+                else:  # Right turn
+                    steering_angle_left = math.atan2(L, r_abs + W / 2)
+                    steering_angle_right = math.atan2(L, r_abs - W / 2)
+
+                steering_angle_left = math.copysign(steering_angle_left, angular_vel)
+                steering_angle_right = math.copysign(steering_angle_right, angular_vel)
 
         # Limit steering angles to physical constraints (-45° to +45°)
         max_steering = 0.785  # ~45 degrees in radians

@@ -1,0 +1,2 @@
+/home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/launch/launch/bringup_all.launch.py
+/home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/launch/launch/nav2_bringup.launch.py

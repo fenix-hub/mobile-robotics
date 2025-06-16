@@ -1,0 +1,17 @@
+[1.783s] Invoking command in '/home/fenixhub/ackermann_ws/build/ackermann_control_bridge': PYTHONPATH=/home/fenixhub/ackermann_ws/build/ackermann_control_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/fenixhub/ackermann_ws/build/ackermann_control_bridge/build --no-deps symlink_data
+[2.256s] running develop
+[2.586s] running egg_info
+[2.587s] writing ackermann_control_bridge.egg-info/PKG-INFO
+[2.587s] writing dependency_links to ackermann_control_bridge.egg-info/dependency_links.txt
+[2.588s] writing entry points to ackermann_control_bridge.egg-info/entry_points.txt
+[2.588s] writing requirements to ackermann_control_bridge.egg-info/requires.txt
+[2.588s] writing top-level names to ackermann_control_bridge.egg-info/top_level.txt
+[2.665s] reading manifest file 'ackermann_control_bridge.egg-info/SOURCES.txt'
+[2.666s] writing manifest file 'ackermann_control_bridge.egg-info/SOURCES.txt'
+[2.751s] running build_ext
+[2.752s] Creating /home/fenixhub/ackermann_ws/install/ackermann_control_bridge/lib/python3.8/site-packages/ackermann-control-bridge.egg-link (link to .)
+[2.754s] Installing ackermann_bridge_node script to /home/fenixhub/ackermann_ws/install/ackermann_control_bridge/lib/ackermann_control_bridge
+[2.755s] 
+[2.755s] Installed /home/fenixhub/ackermann_ws/build/ackermann_control_bridge
+[2.755s] running symlink_data
+[2.809s] Invoked command in '/home/fenixhub/ackermann_ws/build/ackermann_control_bridge' returned '0': PYTHONPATH=/home/fenixhub/ackermann_ws/build/ackermann_control_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/fenixhub/ackermann_ws/build/ackermann_control_bridge/build --no-deps symlink_data

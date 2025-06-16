@@ -1,0 +1,26 @@
+[0.321s] Invoking command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge:/opt/ros/foxy /usr/bin/cmake --build /home/fenixhub/ackermann_ws/build/ackermann_robot_navigation -- -j12 -l12
+[0.393s] Invoked command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge:/opt/ros/foxy /usr/bin/cmake --build /home/fenixhub/ackermann_ws/build/ackermann_robot_navigation -- -j12 -l12
+[0.397s] Invoking command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge:/opt/ros/foxy /usr/bin/cmake --install /home/fenixhub/ackermann_ws/build/ackermann_robot_navigation
+[0.411s] -- Install configuration: ""
+[0.412s] -- Execute custom install script
+[0.413s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/maps/maps/blank_map.pgm
+[0.414s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/maps/maps/blank_map.yaml
+[0.414s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ament_index/resource_index/package_run_dependencies/ackermann_robot_navigation
+[0.415s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ament_index/resource_index/parent_prefix_path/ackermann_robot_navigation
+[0.416s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/environment/ament_prefix_path.sh
+[0.416s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/environment/ament_prefix_path.dsv
+[0.417s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/environment/path.sh
+[0.417s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/environment/path.dsv
+[0.418s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/local_setup.bash
+[0.418s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/local_setup.sh
+[0.419s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/local_setup.zsh
+[0.419s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/local_setup.dsv
+[0.420s] -- Symlinking: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/package.dsv
+[0.440s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ament_index/resource_index/packages/ackermann_robot_navigation
+[0.441s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/cmake/ackermann_robot_navigationConfig.cmake
+[0.441s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/cmake/ackermann_robot_navigationConfig-version.cmake
+[0.442s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/package.xml
+[0.442s] -- Up-to-date: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/launch/launch
+[0.442s] -- Up-to-date: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/launch/launch/bringup_all.launch.py
+[0.443s] -- Up-to-date: /home/fenixhub/ackermann_ws/install/ackermann_robot_navigation/share/ackermann_robot_navigation/launch/launch/nav2_bringup.launch.py
+[0.464s] Invoked command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/fenixhub/ackermann_ws/install/ackermann_control_bridge:/opt/ros/foxy /usr/bin/cmake --install /home/fenixhub/ackermann_ws/build/ackermann_robot_navigation

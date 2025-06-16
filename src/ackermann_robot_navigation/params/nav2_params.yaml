@@ -1,0 +1,82 @@
+# nav2_params.yaml
+
+amcl:
+  ros__parameters:
+    use_sim_time: True
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    base_frame_id: "base_chassis"
+    odom_frame_id: "odom"
+    scan_topic: "scan"       # If you add a laser scanner later; for now you can disable AMCL or use fake localization.
+    min_particles: 500
+    max_particles: 2000
+    initial_pose:
+      pose:
+        position:
+          x: 0.0
+          y: 0.0
+          z: 0.0
+        orientation:
+          z: 0.0
+          w: 1.0
+      covariance:
+        [0.25, 0, 0, 0, 0, 0,
+         0, 0.25, 0, 0, 0, 0,
+         0, 0, 0.0001, 0, 0, 0,
+         0, 0, 0, 0.0001, 0, 0,
+         0, 0, 0, 0, 0.0001, 0,
+         0, 0, 0, 0, 0, 0.06853891945200942]
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    # Robot footprint (approximate rectangular footprint, same as chassis dims + safety margin)
+    footprint:
+      - [0.3,  0.2]
+      - [0.3, -0.2]
+      - [-0.3, -0.2]
+      - [-0.3,  0.2]
+    min_speed: 0.0
+    max_speed: 0.4
+    min_turning_radius: 0.3
+    max_accel: 0.2
+    rotation_to_straight_dist: 0.1
+    use_astar: False
+    use_backups: False
+    use_recoveries: True
+
+planner_server:
+  ros__parameters:
+    use_sim_time: True
+    expected_planner_frequency: 20.0
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "smac_planner/SmacPlanner"
+      tolerance: 0.5
+
+behavior_tree:
+  ros__parameters:
+    bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+
+recoveries_server:
+  ros__parameters:
+    use_sim_time: True
+
+map_server:
+  ros__parameters:
+    use_sim_time: True
+    yaml_filename: "blank_map.yaml"   # replace with actual map if you have one
+
+lifecyle_manager:
+  ros__parameters:
+    use_sim_time: True
+    autostart: True
+    node_names: ["map_server","amcl","planner_server","controller_server","recoveries_server","bt_navigator"]
+

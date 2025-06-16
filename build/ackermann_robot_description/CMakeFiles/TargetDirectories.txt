@@ -1,0 +1,9 @@
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/install/strip.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/install/local.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/install.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/list_install_components.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/rebuild_cache.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/edit_cache.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/test.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/ackermann_robot_description_uninstall.dir
+/home/fenixhub/ackermann_ws/build/ackermann_robot_description/CMakeFiles/uninstall.dir

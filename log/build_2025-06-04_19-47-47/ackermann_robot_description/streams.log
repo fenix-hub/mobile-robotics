@@ -1,0 +1,39 @@
+[0.016s] Invoking command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/fenixhub/ackermann_ws/build/ackermann_robot_description -- -j12 -l12
+[0.043s] -- Found ament_cmake: 0.9.12 (/opt/ros/foxy/share/ament_cmake/cmake)
+[0.066s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[0.292s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.300s] -- Found xacro: 2.0.7 (/opt/ros/foxy/share/xacro/cmake)
+[0.300s] -- Found ament_lint_auto: 0.9.8 (/opt/ros/foxy/share/ament_lint_auto/cmake)
+[0.381s] -- Added test 'copyright' to check source files copyright and LICENSE
+[0.383s] -- Added test 'flake8' to check Python code syntax and style conventions
+[0.384s] -- Added test 'lint_cmake' to check CMake code style
+[0.384s] -- Added test 'pep257' to check Python code against some of the style conventions in PEP 257
+[0.385s] -- Added test 'xmllint' to check XML markup files
+[0.388s] -- Configuring done
+[0.390s] -- Generating done
+[0.392s] -- Build files have been written to: /home/fenixhub/ackermann_ws/build/ackermann_robot_description
+[0.420s] Invoked command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/fenixhub/ackermann_ws/build/ackermann_robot_description -- -j12 -l12
+[0.438s] Invoking command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/fenixhub/ackermann_ws/build/ackermann_robot_description
+[0.448s] -- Install configuration: ""
+[0.449s] -- Execute custom install script
+[0.449s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/urdf/urdf/ackermann_robot.urdf.xacro
+[0.450s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ament_index/resource_index/package_run_dependencies/ackermann_robot_description
+[0.450s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ament_index/resource_index/parent_prefix_path/ackermann_robot_description
+[0.451s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/environment/ament_prefix_path.sh
+[0.451s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/environment/ament_prefix_path.dsv
+[0.452s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/environment/path.sh
+[0.452s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/environment/path.dsv
+[0.453s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/local_setup.bash
+[0.453s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/local_setup.sh
+[0.454s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/local_setup.zsh
+[0.454s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/local_setup.dsv
+[0.455s] -- Symlinking: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/package.dsv
+[0.467s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ament_index/resource_index/packages/ackermann_robot_description
+[0.467s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/cmake/ackermann_robot_descriptionConfig.cmake
+[0.467s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/cmake/ackermann_robot_descriptionConfig-version.cmake
+[0.468s] -- Up-to-date symlink: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/package.xml
+[0.468s] -- Up-to-date: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/launch/launch
+[0.468s] -- Up-to-date: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/launch/launch/spawn_ackermann.launch.py
+[0.468s] -- Installing: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/worlds/worlds
+[0.468s] -- Installing: /home/fenixhub/ackermann_ws/install/ackermann_robot_description/share/ackermann_robot_description/worlds/worlds/empty.world
+[0.471s] Invoked command in '/home/fenixhub/ackermann_ws/build/ackermann_robot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/fenixhub/ackermann_ws/build/ackermann_robot_description

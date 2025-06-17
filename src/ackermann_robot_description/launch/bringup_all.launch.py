@@ -17,7 +17,8 @@ def generate_launch_description():
     robot_desc = Command(['xacro ', urdf_file])
 
     # Params
-    map_yaml    = os.path.join(nav_pkg, 'maps', 'blank_map.yaml')
+    world_file = 'nav2_tutorial.world.sdf'
+    world = os.path.join(desc_pkg, 'worlds', world_file)
 
     # ros2_control configuration
     ros2_control_yaml = os.path.join(desc_pkg, 'config', 'ros2_control.yaml')
@@ -26,7 +27,7 @@ def generate_launch_description():
         # 1) Launch Gazebo + Spawn Robot
         GroupAction([
             ExecuteProcess(
-                cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', os.path.join(desc_pkg, 'worlds', 'empty.world')],
+                cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world],
                 output='screen'
             ),
             Node(

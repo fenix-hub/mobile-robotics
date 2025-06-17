@@ -55,7 +55,9 @@ install(
 install(
   DIRECTORY worlds
   DESTINATION share/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.world"
+  FILES_MATCHING 
+  PATTERN "*.world" 
+  PATTERN "*.sdf"
 )
 
 # Install config directory (so ros2_control.yaml is available at runtime)

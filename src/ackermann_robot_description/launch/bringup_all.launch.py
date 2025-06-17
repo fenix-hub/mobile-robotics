@@ -30,18 +30,7 @@ def generate_launch_description():
                 cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world],
                 output='screen'
             ),
-            Node(
-                package='joint_state_publisher',
-                executable='joint_state_publisher',
-                name='joint_state_publisher',
-                output='screen'
-            ),
-            Node(
-                package='joint_state_publisher_gui',
-                executable='joint_state_publisher_gui',
-                name='joint_state_publisher_gui',
-                output='screen'
-            ),
+
             Node(
                 package='robot_state_publisher',
                 executable='robot_state_publisher',

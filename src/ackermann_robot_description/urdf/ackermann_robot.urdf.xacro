@@ -190,6 +190,102 @@
     </plugin>
   </gazebo>
 
+  <!--**********************-->
+  <!-- Sensors -->
+  <!--**********************-->
+  <link name="lidar_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.02" radius="0.04"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.02" radius="0.04"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+    </inertial>
+  </link>
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_chassis"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 ${chassis_height + 0.05}" rpy="0 0 0"/>
+  </joint>
+  <gazebo reference="lidar_link">
+    <sensor name="lidar" type="ray">
+      <pose>0 0 0 0 0 0</pose>
+      <update_rate>10</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <min_angle>-1.5708</min_angle>
+            <max_angle>1.5708</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.1</min>
+          <max>10.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+      <plugin name="gazebo_ros_laser" filename="libgazebo_ros_ray_sensor.so">
+        <topicName>scan</topicName>
+        <frameName>lidar_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <link name="depth_camera_link">
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.05"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.05 0.05"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="0.002" ixy="0.0" ixz="0.0" iyy="0.002" iyz="0.0" izz="0.002"/>
+    </inertial>
+  </link>
+  <joint name="depth_camera_joint" type="fixed">
+    <parent link="base_chassis"/>
+    <child link="depth_camera_link"/>
+    <origin xyz="0 0 ${chassis_height + 0.1}" rpy="0 0 0"/>
+  </joint>
+  <gazebo reference="depth_camera_link">
+    <sensor name="depth_camera" type="depth">
+      <pose>0 0 0 0 0 0</pose>
+      <update_rate>30</update_rate>
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>10.0</far>
+        </clip>
+      </camera>
+      <plugin name="gazebo_ros_depth_camera" filename="libgazebo_ros_depth_camera.so">
+        <topicName>depth/image_raw</topicName>
+        <frameName>depth_camera_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
 
 </robot>
 

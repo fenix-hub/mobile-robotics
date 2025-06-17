@@ -6,6 +6,7 @@ This repository contains a minimal setup for an Ackermann drive robot using the 
 - `src/ackermann_robot_description` – URDF model and Gazebo launch files for the robot
 - `src/ackermann_control_bridge` – node that converts `/cmd_vel` into steering and wheel commands
 - `src/ackermann_robot_navigation` – navigation configuration and launch files
+- The robot description now includes a 2D LIDAR publishing `/scan` and a depth camera publishing `/depth/image_raw` in Gazebo.
 
 ## How the nav2 Stack Works
 The nav2 stack is a collection of ROS 2 nodes that provide navigation capabilities:
@@ -39,3 +40,4 @@ colcon build --symlink-install
 
 The robot will read the map in `src/ackermann_robot_navigation/maps/blank_map.yaml` and you can send goals using RViz2 or the `/navigate_to_pose` action.
 
+The LiDAR and depth camera data is available on `/scan` and `/depth/image_raw`.

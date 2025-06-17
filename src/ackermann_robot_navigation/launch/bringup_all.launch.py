@@ -147,7 +147,7 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2',
             output='screen',
-            arguments=['-d', os.path.join(nav_pkg, 'rviz', 'nav2_default_view.rviz')]
+            arguments=['-d', os.path.join(nav_pkg, 'rviz', 'config.rviz')]
         ),
     ])
 

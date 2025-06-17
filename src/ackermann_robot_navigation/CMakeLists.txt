@@ -43,25 +43,8 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY maps
-  DESTINATION share/${PROJECT_NAME}/maps
+  DIRECTORY src launch rviz maps
+  DESTINATION share/${PROJECT_NAME}
 )
-
-# ───────────────────────────────────────────────────
-# Install the launch files so ROS2 can find them
-# (if you haven’t already done this)
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/launch
-  FILES_MATCHING PATTERN "*.launch.py"
-)
-
-# Install RViz configuration files
-install(
-  DIRECTORY rviz
-  DESTINATION share/${PROJECT_NAME}/rviz
-  FILES_MATCHING PATTERN "*.rviz"
-)
-
 
 ament_package()

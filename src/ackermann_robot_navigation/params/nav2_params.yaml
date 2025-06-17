@@ -74,7 +74,7 @@ map_server:
     use_sim_time: True
     yaml_filename: "blank_map.yaml"   # replace with actual map if you have one
 
-lifecyle_manager:
+lifecycle_manager:
   ros__parameters:
     use_sim_time: True
     autostart: True

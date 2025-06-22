@@ -8,7 +8,7 @@ class AckermannBridge(Node):
     def __init__(self):
         super().__init__('ackermann_bridge')
         
-        # Publishers for group-joint controllers (they listen on <name>/commands)
+        # Publishers for group-joint controllers (they listen on <n>/commands)
         self.pub_rear_left_vel = self.create_publisher(
             Float64MultiArray,
             '/rear_left_wheel_velocity_controller/commands',
@@ -34,15 +34,37 @@ class AckermannBridge(Node):
         self.track_width = 0.3    # [m] - distance between left and right wheels
         self.wheel_radius = 0.05  # [m] - wheel radius
 
-        self.get_logger().info('Ackermann Bridge Node Started')
+        # Friction compensation factor - helps with wheel slip
+        self.friction_compensation = 1.5  # Increased from 1.2 to provide more torque
+
+        # Turning balance factor - helps with uneven turning
+        self.turning_balance = 0.9  # Slightly reduce turning effect to prevent over-rotation
+
+        # Minimum linear velocity for forward motion to be considered significant
+        self.min_linear_vel = 0.05
+
+        self.get_logger().info('Ackermann Bridge Node Started with improved forward motion handling')
 
     def cmd_vel_callback(self, msg: Twist):
         linear_vel = msg.linear.x    # Forward velocity [m/s]
-        angular_vel = msg.angular.z  # Angular velocity [rad/s]
+        angular_vel = msg.angular.z * self.turning_balance  # Angular velocity [rad/s] with balance factor
+
+        # Log incoming command for debugging
+        self.get_logger().info(f'Received cmd_vel: linear={linear_vel:.3f}, angular={angular_vel:.3f}')
+
+        # Apply a small deadzone to angular velocity to prevent minor unwanted rotations
+        if abs(angular_vel) < 0.05:
+            angular_vel = 0.0
 
         # Handle straight line motion (no turning)
         if abs(angular_vel) < 1e-6:
-            wheel_angular_vel = linear_vel / self.wheel_radius
+            # Apply friction compensation for better straight-line motion
+            wheel_angular_vel = (linear_vel / self.wheel_radius) * self.friction_compensation
+
+            # For very small linear velocities, apply a minimum threshold
+            if abs(linear_vel) < self.min_linear_vel and abs(linear_vel) > 1e-6:
+                wheel_angular_vel = math.copysign(self.min_linear_vel / self.wheel_radius * self.friction_compensation, linear_vel)
+
             steering_angle_left = 0.0
             steering_angle_right = 0.0
 
@@ -50,21 +72,45 @@ class AckermannBridge(Node):
             rear_left_vel = wheel_angular_vel
             rear_right_vel = wheel_angular_vel
 
+            self.get_logger().info(f'Straight motion: wheel_vel={wheel_angular_vel:.3f}')
+
         else:
             # Calculate turning radius from vehicle center
             if abs(linear_vel) < 1e-6:
                 # Pure rotation - not typical for Ackermann but handle it
                 steering_angle_left = math.copysign(0.785, angular_vel)  # Max steering ~45 degrees
                 steering_angle_right = math.copysign(0.785, angular_vel)
-                rear_left_vel = 0.0
-                rear_right_vel = 0.0
+
+                # For in-place rotation, use differential speeds with increased torque
+                rotation_speed = 0.5 * self.wheel_radius * abs(angular_vel) * self.friction_compensation  # Increased from 0.2
+                rear_left_vel = -math.copysign(rotation_speed, angular_vel)
+                rear_right_vel = math.copysign(rotation_speed, angular_vel)
+
+                self.get_logger().info(f'Pure rotation: rotation_speed={rotation_speed:.3f}')
             else:
                 # Normal Ackermann steering calculation
                 turn_radius = linear_vel / angular_vel
 
-                # Rear wheel angular velocities using differential drive model
-                rear_left_vel = (linear_vel - angular_vel * self.track_width / 2) / self.wheel_radius
-                rear_right_vel = (linear_vel + angular_vel * self.track_width / 2) / self.wheel_radius
+                # Calculate inner and outer wheel distances to instantaneous center of rotation (ICR)
+                if angular_vel > 0:  # Left turn
+                    inner_radius = turn_radius - self.track_width / 2
+                    outer_radius = turn_radius + self.track_width / 2
+                else:  # Right turn
+                    inner_radius = turn_radius + self.track_width / 2
+                    outer_radius = turn_radius - self.track_width / 2
+
+                # Calculate wheel velocities based on their distance from ICR
+                # Apply friction compensation for more effective motion
+                inner_vel = (abs(angular_vel) * abs(inner_radius) / self.wheel_radius) * self.friction_compensation
+                outer_vel = (abs(angular_vel) * abs(outer_radius) / self.wheel_radius) * self.friction_compensation
+
+                # Assign velocities to left/right wheels based on turn direction
+                if angular_vel > 0:  # Left turn
+                    rear_left_vel = math.copysign(inner_vel, linear_vel)
+                    rear_right_vel = math.copysign(outer_vel, linear_vel)
+                else:  # Right turn
+                    rear_left_vel = math.copysign(outer_vel, linear_vel)
+                    rear_right_vel = math.copysign(inner_vel, linear_vel)
 
                 # Front wheel steering angles (Ackermann geometry)
                 L = self.wheelbase
@@ -75,11 +121,10 @@ class AckermannBridge(Node):
                     steering_angle_left = math.atan2(L, r_abs - W / 2)
                     steering_angle_right = math.atan2(L, r_abs + W / 2)
                 else:  # Right turn
-                    steering_angle_left = math.atan2(L, r_abs + W / 2)
-                    steering_angle_right = math.atan2(L, r_abs - W / 2)
+                    steering_angle_left = -math.atan2(L, r_abs + W / 2)
+                    steering_angle_right = -math.atan2(L, r_abs - W / 2)
 
-                steering_angle_left = math.copysign(steering_angle_left, angular_vel)
-                steering_angle_right = math.copysign(steering_angle_right, angular_vel)
+                self.get_logger().info(f'Turning: inner_vel={inner_vel:.3f}, outer_vel={outer_vel:.3f}')
 
         # Limit steering angles to physical constraints (-45° to +45°)
         max_steering = 0.785  # ~45 degrees in radians
@@ -99,11 +144,8 @@ class AckermannBridge(Node):
         self.pub_fr_steer_pos.publish(front_right_msg)
 
         # Debug logging
-        self.get_logger().debug(
-            f'cmd_vel: lin={linear_vel:.2f}, ang={angular_vel:.2f} | '
-            f'Steering: L={math.degrees(steering_angle_left):.1f}°, R={math.degrees(steering_angle_right):.1f}° | '
-            f'Rear wheels: L={rear_left_vel:.2f}, R={rear_right_vel:.2f} rad/s'
-        )
+        self.get_logger().debug(f'Steering: L={steering_angle_left:.3f}, R={steering_angle_right:.3f}')
+        self.get_logger().debug(f'Wheel vel: L={rear_left_vel:.3f}, R={rear_right_vel:.3f}')
 
 def main(args=None):
     rclpy.init(args=args)

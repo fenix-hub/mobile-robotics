@@ -35,7 +35,7 @@ rear_left_wheel_velocity_controller:
       - velocity
     state_interfaces:
       - velocity
-    pid: {p: 1.0, i: 0.0, d: 0.0, i_clamp: 0.0}
+    pid: {p: 5.0, i: 0.5, d: 0.1, i_clamp: 1.0}
 
 rear_right_wheel_velocity_controller:
   ros__parameters:
@@ -47,7 +47,7 @@ rear_right_wheel_velocity_controller:
       - velocity
     state_interfaces:
       - velocity
-    pid: {p: 1.0, i: 0.0, d: 0.0, i_clamp: 0.0}
+    pid: {p: 5.0, i: 0.5, d: 0.1, i_clamp: 1.0}
 
 front_left_steering_position_controller:
   ros__parameters:

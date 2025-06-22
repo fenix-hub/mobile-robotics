@@ -30,7 +30,18 @@ def generate_launch_description():
                 cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world],
                 output='screen'
             ),
-
+            Node(
+                package='joint_state_publisher',
+                executable='joint_state_publisher',
+                name='joint_state_publisher',
+                output='screen'
+            ),
+            # Node(
+            #     package='joint_state_publisher_gui',
+            #     executable='joint_state_publisher_gui',
+            #     name='joint_state_publisher_gui',
+            #     output='screen'
+            # ),
             Node(
                 package='robot_state_publisher',
                 executable='robot_state_publisher',
@@ -85,6 +96,23 @@ def generate_launch_description():
             executable='ackermann_bridge_node',
             name='ackermann_bridge',
             output='screen'
+        ),
+
+        # 4) Launch Odometry Node
+        Node(
+            package='ackermann_control_bridge',
+            executable='ackermann_odometry_node',
+            name='ackermann_odometry_node',
+            output='screen',
+            parameters=[{
+                'use_sim_time': True,
+                'wheelbase': 0.4,
+                'track_width': 0.3,
+                'wheel_radius': 0.05,
+                'odom_frame': 'odom',
+                'base_frame': 'base_link',
+                'publish_rate': 50.0,
+            }]
         ),
 
 

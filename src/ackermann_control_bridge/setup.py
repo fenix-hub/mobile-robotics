@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'ackermann_bridge_node = ackermann_control_bridge.ackermann_bridge_node:main'
+            'ackermann_bridge_node = ackermann_control_bridge.ackermann_bridge_node:main',
+            'ackermann_odometry_node = ackermann_control_bridge.ackermann_odometry_node:main'
         ],
     },
 )

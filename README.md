@@ -41,3 +41,43 @@ colcon build --symlink-install
 The robot will read the map in `src/ackermann_robot_navigation/maps/blank_map.yaml` and you can send goals using RViz2 or the `/navigate_to_pose` action.
 
 The LiDAR and depth camera data is available on `/scan` and `/depth/image_raw`.
+
+## Sending Navigation Goals
+
+You can send navigation goals using RViz2 or directly via command line:
+```bash
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose "{pose: {position: {x: 1.0, y: 1.0, z: 0.0}, orientation: {w: 1.0}}}"
+```
+3. **Visualize in RViz2** (in another terminal):
+   ```bash
+   ros2 run rviz2 rviz2 -d src/ackermann_robot_navigation/rviz/nav2_default_view.rviz
+   ```
+4. **Send goals** using the RViz2 interface or command line as shown above.
+5. **Monitor the robot's state** in RViz2, where you can see the robot's position, planned path, and sensor data.
+
+---
+
+## Bibliography and References
+
+1. [Foxy support on Ackermann](https://robostack.github.io/foxy.html)
+2. [AWS Deepracer Navigation Stack](https://github.com/aws-deepracer/aws-deepracer/blob/main/introduction-to-the-ros-navigation-stack-using-aws-deepracer-evo.md)
+
+## Sending Navigation Goals
+
+You can send navigation goals using RViz2 or directly via command line:
+```bash
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose "{pose: {position: {x: 1.0, y: 1.0, z: 0.0}, orientation: {w: 1.0}}}"
+```
+3. **Visualize in RViz2** (in another terminal):
+   ```bash
+   ros2 run rviz2 rviz2 -d src/ackermann_robot_navigation/rviz/nav2_default_view.rviz
+   ```
+4. **Send goals** using the RViz2 interface or command line as shown above.
+5. **Monitor the robot's state** in RViz2, where you can see the robot's position, planned path, and sensor data.
+
+---
+
+## Bibliography and References
+
+1. [Foxy support on Ackermann](https://robostack.github.io/foxy.html)
+2. [AWS Deepracer Navigation Stack](https://github.com/aws-deepracer/aws-deepracer/blob/main/introduction-to-the-ros-navigation-stack-using-aws-deepracer-evo.md)

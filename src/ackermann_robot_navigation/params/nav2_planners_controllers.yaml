@@ -1,0 +1,254 @@
+# Nav2 Planner and Controller Servers Configuration for Ackermann Robot
+
+planner_server:
+  ros__parameters:
+    use_sim_time: True
+    
+    # Global planner plugins - define and configure planner algorithms
+    planner_plugins: ["GridBased", "SmacPlanner"]
+
+    # GridBased planner configuration (NavFn)
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: true
+      allow_unknown: true
+
+    # Smac Planner - optimized for Ackermann steering
+    SmacPlanner:
+      plugin: "smac_planner/SmacPlanner"
+      tolerance: 0.5
+      downsample_costmap: true
+      downsampling_factor: 1
+      allow_unknown: true
+      max_iterations: 1000000
+      max_planning_time: 5.0
+      motion_model_for_search: "DUBIN"  # DUBIN for car-like (Ackermann) robots
+      angle_quantization_bins: 72
+      minimum_turning_radius: 0.4  # Based on your Ackermann steering geometry
+      smooth_path: true
+
+    # Common parameters for all planners
+    expected_planner_frequency: 1.0
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath", "TEB"]
+
+    # Progress checker parameters
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    
+    # Goal checker parameters
+    general_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+      stateful: True
+    
+    # Regulated Pure Pursuit Controller - good for exact path following for Ackermann
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.5
+      max_linear_accel: 2.5
+      max_linear_decel: 2.5
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      lookahead_time: 1.5
+      rotate_to_heading_angular_vel: 1.8
+      transform_tolerance: 0.1
+      use_velocity_scaled_lookahead_dist: true
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.6
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: true
+      regulated_linear_scaling_min_radius: 0.9
+      regulated_linear_scaling_min_speed: 0.25
+      use_rotate_to_heading: true
+      rotate_to_heading_min_angle: 0.785
+      max_angular_accel: 2.0
+      
+      # Ackermann-specific parameters
+      allow_reversing: false
+      cost_scaling_dist: 0.3
+      cost_scaling_gain: 1.0
+      inflation_cost_scaling_factor: 3.0
+
+    # TEB Controller - optimized for Ackermann with dynamic obstacle avoidance
+    TEB:
+      plugin: "nav2_teb_controller::TebController"
+      odom_topic: "odom"
+      map_frame: "map"
+
+      # Trajectory
+      teb_autosize: true
+      dt_ref: 0.3
+      dt_hysteresis: 0.1
+      min_samples: 3
+      global_plan_overwrite_orientation: true
+      global_plan_viapoint_sep: 0.5
+      max_global_plan_lookahead_dist: 3.0
+      force_reinit_new_goal_dist: 1.0
+      feasibility_check_no_poses: 4
+      publish_feedback: true
+      shrink_horizon_backup: true
+      allow_init_with_backwards_motion: false
+      exact_arc_length: false
+      shrink_horizon_min_duration: 10.0
+
+      # Robot
+      max_vel_x: 0.5
+      max_vel_x_backwards: 0.0  # No reversing for Ackermann (can be enabled if needed)
+      max_vel_theta: 0.3
+      acc_lim_x: 0.5
+      acc_lim_theta: 0.5
+      min_turning_radius: 0.4  # Important for Ackermann steering
+      wheelbase: 0.4  # Your robot's wheelbase
+      cmd_angle_instead_rotvel: true  # For Ackermann, we control steering angle
+
+      # GoalTolerance
+      xy_goal_tolerance: 0.2
+      yaw_goal_tolerance: 0.2
+      free_goal_vel: false
+      complete_global_plan: true
+
+      # Obstacles
+      min_obstacle_dist: 0.5
+      inflation_dist: 0.6
+      include_costmap_obstacles: true
+      costmap_obstacles_behind_robot_dist: 1.0
+      obstacle_poses_affected: 30
+      legacy_obstacle_association: false
+      obstacle_association_cutoff_factor: 5.0
+      obstacle_association_force_inclusion_factor: 1.5
+      costmap_converter_plugin: ""
+      costmap_converter_spin_thread: true
+      costmap_converter_rate: 5.0
+
+      # Optimization
+      optimization_activate: true
+      optimization_verbose: false
+      penalty_epsilon: 0.1
+      weight_max_vel_x: 2.0
+      weight_max_vel_theta: 1.0
+      weight_acc_lim_x: 1.0
+      weight_acc_lim_theta: 1.0
+      weight_kinematics_nh: 1000.0  # High weight enforces car-like kinematics
+      weight_kinematics_forward_drive: 1.0
+      weight_kinematics_turning_radius: 1.0  # Enforce minimum turning radius
+      weight_optimaltime: 1.0
+      weight_shortest_path: 0.0
+      weight_obstacle: 50.0
+      weight_inflation: 0.1
+      weight_dynamic_obstacle: 10.0
+      weight_dynamic_obstacle_inflation: 0.2
+      weight_viapoint: 1.0
+      weight_adapt_factor: 2.0
+
+      # Parallel Planning
+      enable_homotopy_class_planning: true
+      enable_multithreading: true
+      max_number_classes: 4
+      selection_cost_hysteresis: 1.0
+      selection_prefer_initial_plan: 0.95
+      selection_obst_cost_scale: 1.0
+      selection_alternative_time_cost: false
+      roadmap_graph_no_samples: 15
+      roadmap_graph_area_width: 5.0
+      roadmap_graph_area_length_scale: 1.0
+      h_signature_prescaler: 0.5
+      h_signature_threshold: 0.1
+      obstacle_heading_threshold: 0.45
+      switching_blocking_period: 0.0
+      viapoints_all_candidates: true
+      visualize_hc_graph: false
+      visualize_with_time_as_z_axis_scale: 0.0
+
+      # Recovery
+      shrink_horizon_backup: true
+      oscillation_recovery: true
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: True
+      rolling_window: true
+      width: 3
+      height: 3
+      resolution: 0.05
+      
+      plugins: ["obstacle_layer", "inflation_layer"]
+      
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+      
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+        inflate_unknown: false
+        inflate_around_unknown: true
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_link
+      use_sim_time: True
+      
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+          
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+        inflate_unknown: false
+        inflate_around_unknown: true

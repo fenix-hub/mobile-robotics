@@ -21,7 +21,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'params',
             default_value=default_params_file,
-            description='Full path to the ROS2 parameters file to use for all launched nodes'
+            description='Full path to the ROS2 parameters file to use for all launched ackermann_control_bridge'
         ),
         Node(
             package='nav2_map_server',

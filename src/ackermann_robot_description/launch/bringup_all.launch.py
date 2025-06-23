@@ -2,15 +2,15 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import GroupAction, ExecuteProcess
-from launch_ros.actions import Node
+from launch.actions import GroupAction, ExecuteProcess, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
+from launch_ros.actions import Node
+from launch.actions import TimerAction
 
 def generate_launch_description():
     # Paths to packages
     desc_pkg   = get_package_share_directory('ackermann_robot_description')
-    nav_pkg    = get_package_share_directory('ackermann_robot_navigation')
-    control_pkg= get_package_share_directory('ackermann_control_bridge')
 
     # URDF xacro
     urdf_file = os.path.join(desc_pkg, 'urdf', 'ackermann_robot.urdf.xacro')
@@ -22,6 +22,7 @@ def generate_launch_description():
 
     # ros2_control configuration
     ros2_control_yaml = os.path.join(desc_pkg, 'config', 'ros2_control.yaml')
+    ekf_yaml = os.path.join(desc_pkg, 'config', 'ekf.yaml')
 
     return LaunchDescription([
         # 1) Launch Gazebo + Spawn Robot
@@ -57,45 +58,66 @@ def generate_launch_description():
             ),
         ]),
 
-        # 2) Launch ros2_control_node + Controllers
-        Node(
-            package='controller_manager',
-            executable='ros2_control_node',
-            parameters=[{'robot_description': robot_desc}, ros2_control_yaml, {'use_sim_time': True}],
-            output='screen'
+        # Start controller spawners with a delay to ensure ros2_control_node is ready
+        TimerAction(
+            period=2.0,
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner.py',
+                    arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+                    output='screen',
+                ),
+            ]
         ),
-        Node(
-            package='controller_manager',
-            executable='spawner.py',
-            arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+
+        TimerAction(
+            period=3.0,
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner.py',
+                    arguments=['rear_left_wheel_velocity_controller', '--controller-manager', '/controller_manager'],
+                    output='screen',
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner.py',
+                    arguments=['rear_right_wheel_velocity_controller', '--controller-manager', '/controller_manager'],
+                    output='screen',
+                ),
+            ]
         ),
-        Node(
-            package='controller_manager',
-            executable='spawner.py',
-            arguments=['rear_left_wheel_velocity_controller', '--controller-manager', '/controller_manager'],
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner.py',
-            arguments=['rear_right_wheel_velocity_controller', '--controller-manager', '/controller_manager'],
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner.py',
-            arguments=['front_left_steering_position_controller', '--controller-manager', '/controller_manager'],
-        ),
-        Node(
-            package='controller_manager',
-            executable='spawner.py',
-            arguments=['front_right_steering_position_controller', '--controller-manager', '/controller_manager'],
+
+        TimerAction(
+            period=4.0,
+            actions=[
+                Node(
+                    package='controller_manager',
+                    executable='spawner.py',
+                    arguments=['front_left_steering_position_controller', '--controller-manager', '/controller_manager'],
+                    output='screen',
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner.py',
+                    arguments=['front_right_steering_position_controller', '--controller-manager', '/controller_manager'],
+                    output='screen',
+                ),
+            ]
         ),
 
         # 3) Launch Ackermann Bridge (delay slightly if needed)
-        Node(
-            package='ackermann_control_bridge',
-            executable='ackermann_bridge_node',
-            name='ackermann_bridge',
-            output='screen'
+        TimerAction(
+            period=5.0,
+            actions=[
+                Node(
+                    package='ackermann_control_bridge',
+                    executable='ackermann_bridge_node',
+                    name='ackermann_bridge',
+                    output='screen'
+                ),
+            ]
         ),
 
         # 4) Launch Odometry Node
@@ -115,6 +137,12 @@ def generate_launch_description():
             }]
         ),
 
-
+        # 5) Launch EKF for localization
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',  # Changed to match the name you're looking for
+            output='screen',
+            parameters=[ekf_yaml, {'use_sim_time': True}],
+        ),
     ])
-

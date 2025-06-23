@@ -34,35 +34,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-# Install the URDF/Xacro files
 install(
-  DIRECTORY urdf
-  DESTINATION share/${PROJECT_NAME}/urdf
-)
-
-# ───────────────────────────────────────────────────
-# Install the launch files so ROS2 can find them
-# (if you haven’t already done this)
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/launch
-  FILES_MATCHING PATTERN "*.launch.py"
-)
-
-# ───────────────────────────────────────────────────
-# Install the worlds folder so Gazebo can find empty.world
-# ───────────────────────────────────────────────────
-install(
-  DIRECTORY worlds
-  DESTINATION share/${PROJECT_NAME}
-  FILES_MATCHING 
-  PATTERN "*.world" 
-  PATTERN "*.sdf"
-)
-
-# Install config directory (so ros2_control.yaml is available at runtime)
-install(
-  DIRECTORY config
+  DIRECTORY urdf launch worlds config
   DESTINATION share/${PROJECT_NAME}
 )
 

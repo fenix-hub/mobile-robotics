@@ -283,35 +283,50 @@
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
     </hardware>
+
     <joint name="rear_left_wheel_joint">
-      <command_interface name="velocity"/>
-      <state_interface   name="velocity"/>
-      <state_interface   name="position"/>
+      <command_interface name="velocity">
+        <param name="min">-10</param>
+        <param name="max">10</param>
+      </command_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
     </joint>
     <joint name="rear_right_wheel_joint">
-      <command_interface name="velocity"/>
-      <state_interface   name="velocity"/>
-      <state_interface   name="position"/>
+      <command_interface name="velocity">
+        <param name="min">-10</param>
+        <param name="max">10</param>
+      </command_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
     </joint>
     <joint name="front_left_steering_joint">
-      <command_interface name="position"/>
-      <state_interface   name="position"/>
-      <state_interface   name="velocity"/>
+      <command_interface name="position">
+        <param name="min">-0.785</param>
+        <param name="max">0.785</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
     </joint>
     <joint name="front_right_steering_joint">
-      <command_interface name="position"/>
-      <state_interface   name="position"/>
-      <state_interface   name="velocity"/>
+      <command_interface name="position">
+        <param name="min">-0.785</param>
+        <param name="max">0.785</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
     </joint>
   </ros2_control>
 
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
       <parameters>$(find ackermann_robot_description)/config/ros2_control.yaml</parameters>
+      <robot_param>robot_description</robot_param>
+      <robot_param_node>robot_state_publisher</robot_param_node>
     </plugin>
   </gazebo>
 
-	
+
 
   <!--**********************-->
   <!-- Sensors -->

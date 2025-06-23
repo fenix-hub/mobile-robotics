@@ -43,7 +43,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY src launch rviz maps
+  DIRECTORY src launch rviz maps params scripts
   DESTINATION share/${PROJECT_NAME}
 )
 

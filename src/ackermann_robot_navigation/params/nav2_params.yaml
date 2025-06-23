@@ -1,4 +1,4 @@
-# nav2_params.yaml
+# nav2_params.yaml for ROS 2 Foxy with Ackermann robot
 
 amcl:
   ros__parameters:
@@ -8,75 +8,159 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_chassis"
+    base_frame_id: "base_link"  # Changed from base_chassis to base_link to match the URDF
     odom_frame_id: "odom"
-    scan_topic: "scan"       # If you add a laser scanner later; for now you can disable AMCL or use fake localization.
+    global_frame_id: "map"
+    scan_topic: "scan"
+    transform_tolerance: 0.5
+    update_min_d: 0.1
+    update_min_a: 0.1
     min_particles: 500
     max_particles: 2000
-    initial_pose:
-      pose:
-        position:
-          x: 0.0
-          y: 0.0
-          z: 0.0
-        orientation:
-          z: 0.0
-          w: 1.0
-      covariance:
-        [0.25, 0, 0, 0, 0, 0,
-         0, 0.25, 0, 0, 0, 0,
-         0, 0, 0.0001, 0, 0, 0,
-         0, 0, 0, 0.0001, 0, 0,
-         0, 0, 0, 0, 0.0001, 0,
-         0, 0, 0, 0, 0, 0.06853891945200942]
+    initial_pose_x: 0.0
+    initial_pose_y: 0.0
+    initial_pose_z: 0.0
+    initial_pose_yaw: 0.0
+    initial_cov_xx: 0.25
+    initial_cov_yy: 0.25
+    initial_cov_aa: 0.068
+    # Set to true to ensure the initial pose is used
+    set_initial_pose: true
 
 controller_server:
   ros__parameters:
     use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
     # Robot footprint (approximate rectangular footprint, same as chassis dims + safety margin)
-    footprint:
-      - [0.3,  0.2]
-      - [0.3, -0.2]
-      - [-0.3, -0.2]
-      - [-0.3,  0.2]
-    min_speed: 0.0
-    max_speed: 0.4
-    min_turning_radius: 0.3
-    max_accel: 0.2
-    rotation_to_straight_dist: 0.1
-    use_astar: False
-    use_backups: False
-    use_recoveries: True
+    footprint: "[ [0.3, 0.2], [0.3, -0.2], [-0.3, -0.2], [-0.3, 0.2] ]"
+
+    # DWB Controller parameters
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.4
+      max_vel_y: 0.0  # Ackermann robot cannot move sideways
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.4
+      min_speed_theta: 0.0
+      acc_lim_x: 0.2
+      acc_lim_y: 0.0  # Ackermann robot cannot move sideways
+      acc_lim_theta: 0.5
+      decel_lim_x: -0.2
+      decel_lim_y: 0.0  # Ackermann robot cannot move sideways
+      decel_lim_theta: -0.5
+
+      # Goal tolerance parameters
+      yaw_goal_tolerance: 0.2
+      xy_goal_tolerance: 0.2
+
+      # Forward simulation parameters
+      sim_time: 1.5
+      sim_granularity: 0.025
+      angular_sim_granularity: 0.025
+      vx_samples: 20
+      vy_samples: 1  # Ackermann robot cannot move sideways
+      vtheta_samples: 40
+
+      # Trajectory scoring parameters
+      path_distance_bias: 32.0
+      goal_distance_bias: 20.0
+      occdist_scale: 0.02
+      forward_point_distance: 0.325
+      stop_time_buffer: 0.2
+      scaling_speed: 0.25
+      max_scaling_factor: 0.2
+
+      # Oscillation prevention parameters
+      oscillation_reset_dist: 0.05
+      oscillation_reset_angle: 0.2
+
+      # Debugging
+      publish_traj_pc: True
+      publish_cost_grid_pc: True
+
+      # Differential drive robot configuration
+      # Required for Ackermann robot simulation
+      holonomic_robot: false
 
 planner_server:
   ros__parameters:
     use_sim_time: True
-    expected_planner_frequency: 20.0
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "smac_planner/SmacPlanner"
+      plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-
-behavior_tree:
-  ros__parameters:
-    bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
-
-bt_navigator:
-  ros__parameters:
-    use_sim_time: True
-
-recoveries_server:
-  ros__parameters:
-    use_sim_time: True
+      use_astar: false
+      allow_unknown: true
 
 map_server:
   ros__parameters:
     use_sim_time: True
-    yaml_filename: "blank_map.yaml"   # replace with actual map if you have one
+    yaml_filename: "blank_map.yaml"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    # Only include plugins that exist in Nav2 Foxy
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_distance_traveled_condition_bt_node
+
+recoveries_server:
+  ros__parameters:
+    use_sim_time: True
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+
+    # Recovery behaviors
+    recovery_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+    # SpinRecovery parameters
+    spin:
+      simulate_ahead_time: 2.0
+
+    # BackUpRecovery parameters
+    backup:
+      speed: 0.1
+      duration: 3.0
 
 lifecycle_manager:
   ros__parameters:
     use_sim_time: True
     autostart: True
-    node_names: ["map_server","amcl","planner_server","controller_server","recoveries_server","bt_navigator"]
-
+    node_names: ["map_server", "amcl", "planner_server", "controller_server", "recoveries_server", "bt_navigator"]

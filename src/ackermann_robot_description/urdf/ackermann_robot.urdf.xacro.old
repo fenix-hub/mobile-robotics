@@ -1,46 +1,86 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="ackermann_robot">
+  <!--**********************-->
+  <!-- Define Macros/Properties -->
+  <!--**********************-->
   <xacro:property name="chassis_length" value="0.6"/>
   <xacro:property name="chassis_width"  value="0.4"/>
   <xacro:property name="chassis_height" value="0.1"/>
 
+  <!-- Wheel dimensions -->
   <xacro:property name="wheel_radius"  value="0.05"/>
   <xacro:property name="wheel_width"   value="0.03"/>
 
-  <xacro:property name="wheelbase"      value="0.4"/>  <xacro:property name="track_width"    value="0.3"/>  <xacro:property name="steering_link_size" value="0.02"/>
-  <xacro:property name="steering_offset_z" value="0.01"/> <xacro:property name="imu_offset_z" value="0.075"/>
-  <xacro:property name="lidar_offset_z" value="0.05"/>
-  <xacro:property name="camera_offset_z" value="0.15"/>
+  <!-- Ground clearance -->
+  <xacro:property name="ground_clearance" value="${wheel_radius}"/>
 
+  <!-- Axle distances -->
+  <xacro:property name="wheelbase"      value="0.4"/>  <!-- distance between front and rear axles -->
+  <xacro:property name="track_width"    value="0.3"/>  <!-- distance between left and right wheels -->
+
+  <!-- Steering link dimensions -->
+  <xacro:property name="steering_link_size" value="0.02"/>
+  <xacro:property name="steering_offset_z" value="0.01"/> <!-- Small offset to prevent collision -->
+
+  <!-- Sensor placements -->
+  <xacro:property name="imu_height" value="${chassis_height + 0.075}"/>
+  <xacro:property name="lidar_height" value="${chassis_height + 0.05}"/>
+  <xacro:property name="camera_height" value="${chassis_height + 0.15}"/>
+
+  <!-- Sensor dimensions -->
   <xacro:property name="imu_size" value="0.05"/>
   <xacro:property name="lidar_radius" value="0.04"/>
   <xacro:property name="lidar_height" value="0.02"/>
   <xacro:property name="camera_size" value="0.05"/>
 
+  <!--**********************-->
+  <!-- Inertial/Visual/Collision Macros -->
+  <!--**********************-->
+    <!-- Define inertial property macros  -->
 
   <xacro:macro name="box_inertia" params="m w h d">
+
     <inertial>
+
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+
       <mass value="${m}"/>
+
       <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0" iyy="${(m/12) * (w*w + d*d)}" iyz="0.0" izz="${(m/12) * (w*w + h*h)}"/>
+
     </inertial>
+
   </xacro:macro>
+
 
   <xacro:macro name="cylinder_inertia" params="m r h">
+
     <inertial>
+
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+
       <mass value="${m}"/>
+
       <inertia ixx="${(m/12) * (3*r*r + h*h)}" ixy = "0" ixz = "0" iyy="${(m/12) * (3*r*r + h*h)}" iyz = "0" izz="${(m/2) * (r*r)}"/>
+
     </inertial>
+
   </xacro:macro>
+
 
   <xacro:macro name="sphere_inertia" params="m r">
-    <inertial>
-      <mass value="${m}"/>
-      <inertia ixx="${(2/5) * m * (r*r)}" ixy="0.0" ixz="0.0" iyy="${(2/5) * m * (r*r)}" iyz="0.0" izz="${(2/5) * m * (r*r)}"/>
-    </inertial>
-  </xacro:macro>
 
+    <inertial>
+
+      <mass value="${m}"/>
+
+      <inertia ixx="${(2/5) * m * (r*r)}" ixy="0.0" ixz="0.0" iyy="${(2/5) * m * (r*r)}" iyz="0.0" izz="${(2/5) * m * (r*r)}"/>
+
+    </inertial>
+
+  </xacro:macro>
+  
+  
   <xacro:macro name="chassis_link" params="prefix">
     <link name="${prefix}_link">
       <visual>
@@ -50,16 +90,17 @@
         <material name="Blue">
           <color rgba="0 0.2 0.8 1.0"/>
         </material>
-        <origin xyz="${chassis_length/2 - wheelbase/2} 0 ${chassis_height/2}"/>
+        <!-- The visual origin is at the center of the chassis box -->
+        <origin xyz="0 0 0" rpy="0 0 0"/>
       </visual>
       <collision>
         <geometry>
           <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
         </geometry>
-        <origin xyz="${chassis_length/2 - wheelbase/2} 0 ${chassis_height/2}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
-        <origin xyz="${chassis_length/2 - wheelbase/2} 0 ${chassis_height/2}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <mass value="5.0"/>
         <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
       </inertial>
@@ -69,7 +110,8 @@
   <xacro:macro name="wheel_link" params="name suffix pos_x pos_y pos_z">
     <link name="${name}">
       <visual>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <!-- Rotate cylinder so its axis aligns with joint axis -->
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <geometry>
           <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
         </geometry>
@@ -78,27 +120,33 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <geometry>
           <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
         </geometry>
       </collision>
       <inertial>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <mass value="0.5"/>
         <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.0005"/>
       </inertial>
     </link>
 
+    <!-- Joint connecting wheel to chassis or steering link -->
     <joint name="${name}_joint" type="continuous">
       <parent link="${suffix}"/>
       <child  link="${name}"/>
       <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
       <axis   xyz="0 1 0"/>
+      <!-- Add dynamics properties for better simulation -->
       <dynamics damping="0.01" friction="0.1"/>
     </joint>
   </xacro:macro>
 
+  <!--**********************-->
+  <!-- Chassis -->
+  <!--**********************-->
+  <!-- Base footprint is a virtual frame at the ground directly beneath the robot's center -->
   <link name="base_footprint"/>
 
   <joint name="base_footprint_joint" type="fixed">
@@ -107,8 +155,13 @@
       <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
   </joint>
 
+  <!-- Create the chassis -->
   <xacro:chassis_link prefix="base"/>
 
+  <!--**********************-->
+  <!-- Steering Links -->
+  <!--**********************-->
+  
   <link name="front_left_steering_link">
     <visual>
       <geometry>
@@ -133,7 +186,8 @@
   <joint name="front_left_steering_joint" type="revolute">
     <parent link="base_link"/>
     <child  link="front_left_steering_link"/>
-    <origin xyz="${wheelbase} ${track_width/2} 0" rpy="0 0 0"/>
+    <!-- Adjust the steering joint position relative to the center of base_link -->
+    <origin xyz="${wheelbase/2} ${track_width/2} 0" rpy="0 0 0"/>
     <axis  xyz="0 0 1"/>
     <limit lower="-0.785" upper="0.785" effort="5.0" velocity="5.0"/>
   </joint>
@@ -162,35 +216,51 @@
   <joint name="front_right_steering_joint" type="revolute">
     <parent link="base_link"/>
     <child  link="front_right_steering_link"/>
-    <origin xyz="${wheelbase} -${track_width/2} 0" rpy="0 0 0"/>
+    <!-- Adjust the steering joint position relative to the center of base_link -->
+    <origin xyz="${wheelbase/2} -${track_width/2} 0" rpy="0 0 0"/>
     <axis  xyz="0 0 1"/>
     <limit lower="-0.785" upper="0.785" effort="5.0" velocity="5.0"/>
   </joint>
 
+  <!--**********************-->
+  <!-- Rear Wheels (driven) -->
+  <!--**********************-->
   <xacro:wheel_link
     name="rear_left_wheel"
     suffix="base_link"
-    pos_x="0" pos_y="${track_width/2 + wheel_width/2 + 0.01}"
-    pos_z="0" />
+    pos_x="${-wheelbase/2}"
+    pos_y="${track_width/2 + wheel_width/2 + 0.01}"
+    pos_z="${-chassis_height/2}"
+  />
   <xacro:wheel_link
     name="rear_right_wheel"
     suffix="base_link"
-    pos_x="0" pos_y="${-track_width/2 - wheel_width/2 - 0.01}"
-    pos_z="0" />
+    pos_x="${-wheelbase/2}"
+    pos_y="${-track_width/2 - wheel_width/2 - 0.01}"
+    pos_z="${-chassis_height/2}"
+  />
 
+  <!--**********************-->
+  <!-- Front Wheels (mounted) -->
+  <!--**********************-->
   <xacro:wheel_link
     name="front_left_wheel"
     suffix="front_left_steering_link"
     pos_x="0"
     pos_y="${wheel_width/2 + 0.01}"
-    pos_z="0" />
+    pos_z="${-chassis_height/2}"
+  />
   <xacro:wheel_link
     name="front_right_wheel"
     suffix="front_right_steering_link"
     pos_x="0"
     pos_y="${-wheel_width/2 - 0.01}"
-    pos_z="0" />
+    pos_z="${-chassis_height/2}"
+  />
 
+  <!--**********************-->
+  <!-- ros2_control Transmissions -->
+  <!--**********************-->
   <ros2_control name="Ackermann" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
@@ -238,6 +308,11 @@
     </plugin>
   </gazebo>
 
+
+
+  <!--**********************-->
+  <!-- Sensors -->
+  <!--**********************-->
   <link name="imu_link">
     <visual>
       <geometry>
@@ -260,80 +335,81 @@
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="imu_link"/>
-    <origin xyz="${wheelbase/2} 0 ${chassis_height/2 + imu_offset_z}"/>
+    <!-- Adjust the position relative to the center of base_link -->
+    <origin xyz="-${wheelbase/4} 0 ${chassis_height/2 + imu_size/2}" rpy="0 0 0"/>
   </joint>
 
   <gazebo reference="imu_link">
-   <sensor name="imu_sensor" type="imu">
-    <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-       <ros>
-         <remapping>~/out:=imu</remapping>
-       </ros>
-       <initial_orientation_as_reference>false</initial_orientation_as_reference>
-     </plugin>
-     <always_on>true</always_on>
-     <update_rate>100</update_rate>
-     <visualize>true</visualize>
-     <imu>
-       <angular_velocity>
-         <x>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>2e-4</stddev>
-             <bias_mean>0.0000075</bias_mean>
-             <bias_stddev>0.0000008</bias_stddev>
-           </noise>
-         </x>
-         <y>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>2e-4</stddev>
-             <bias_mean>0.0000075</bias_mean>
-             <bias_stddev>0.0000008</bias_stddev>
-           </noise>
-         </y>
-         <z>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>2e-4</stddev>
-             <bias_mean>0.0000075</bias_mean>
-             <bias_stddev>0.0000008</bias_stddev>
-           </noise>
-         </z>
-       </angular_velocity>
+		<sensor name="imu_sensor" type="imu">
+		 <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+		    <ros>
+		      <remapping>~/out:=imu</remapping>
+		    </ros>
+		    <initial_orientation_as_reference>false</initial_orientation_as_reference>
+		  </plugin>
+		  <always_on>true</always_on>
+		  <update_rate>100</update_rate>
+		  <visualize>true</visualize>
+		  <imu>
+		    <angular_velocity>
+		      <x>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>2e-4</stddev>
+		          <bias_mean>0.0000075</bias_mean>
+		          <bias_stddev>0.0000008</bias_stddev>
+		        </noise>
+		      </x>
+		      <y>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>2e-4</stddev>
+		          <bias_mean>0.0000075</bias_mean>
+		          <bias_stddev>0.0000008</bias_stddev>
+		        </noise>
+		      </y>
+		      <z>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>2e-4</stddev>
+		          <bias_mean>0.0000075</bias_mean>
+		          <bias_stddev>0.0000008</bias_stddev>
+		        </noise>
+		      </z>
+		    </angular_velocity>
 
-       <linear_acceleration>
-         <x>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>1.7e-2</stddev>
-             <bias_mean>0.1</bias_mean>
-             <bias_stddev>0.001</bias_stddev>
-           </noise>
-         </x>
+		    <linear_acceleration>
+		      <x>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>1.7e-2</stddev>
+		          <bias_mean>0.1</bias_mean>
+		          <bias_stddev>0.001</bias_stddev>
+		        </noise>
+		      </x>
 
-         <y>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>1.7e-2</stddev>
-             <bias_mean>0.1</bias_mean>
-             <bias_stddev>0.001</bias_stddev>
-           </noise>
-         </y>
+		      <y>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>1.7e-2</stddev>
+		          <bias_mean>0.1</bias_mean>
+		          <bias_stddev>0.001</bias_stddev>
+		        </noise>
+		      </y>
 
-         <z>
-           <noise type="gaussian">
-             <mean>0.0</mean>
-             <stddev>1.7e-2</stddev>
-             <bias_mean>0.1</bias_mean>
-             <bias_stddev>0.001</bias_stddev>
-           </noise>
-         </z>
-       </linear_acceleration>
-     </imu>
-   </sensor>
-  </gazebo>
-
+		      <z>
+		        <noise type="gaussian">
+		          <mean>0.0</mean>
+		          <stddev>1.7e-2</stddev>
+		          <bias_mean>0.1</bias_mean>
+		          <bias_stddev>0.001</bias_stddev>
+		        </noise>
+		      </z>
+		    </linear_acceleration>
+		  </imu>
+		</sensor>
+	</gazebo>
+  
   <link name="lidar_link">
     <visual>
       <geometry>
@@ -359,7 +435,8 @@
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="${wheelbase/2} 0 ${chassis_height/2 + lidar_offset_z}"/>
+    <!-- Adjust the position relative to the center of base_link -->
+    <origin xyz="0 0 ${chassis_height/2 + lidar_height/2}" rpy="0 0 0"/>
   </joint>
   <gazebo reference="lidar_link">
     <sensor name="lidar" type="ray">
@@ -380,11 +457,11 @@
         </range>
       </ray>
       <plugin name="gazebo_ros_laser" filename="libgazebo_ros_ray_sensor.so">
-     <ros>
-       <remapping>~/out:=scan</remapping>
-     </ros>
-     <output_type>sensor_msgs/LaserScan</output_type>
-     <frame_name>lidar_link</frame_name>
+		  <ros>
+		    <remapping>~/out:=scan</remapping>
+		  </ros>
+		  <output_type>sensor_msgs/LaserScan</output_type>
+		  <frame_name>lidar_link</frame_name>
       </plugin>
     </sensor>
   </gazebo>
@@ -411,16 +488,17 @@
       <inertia ixx="0.002" ixy="0.0" ixz="0.0" iyy="0.002" iyz="0.0" izz="0.002"/>
     </inertial>
   </link>
-
+  
   <joint name="depth_camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="depth_camera_link"/>
-    <origin xyz="${wheelbase} 0 ${chassis_height/2 + camera_offset_z + 0.05}" rpy="0 0 0"/>
+    <!-- Adjust the position relative to the center of base_link -->
+    <origin xyz="0 0 ${chassis_height/2 + lidar_height + camera_size/2}" rpy="0 0 0"/>
   </joint>
-
+  
   <gazebo reference="depth_camera_link">
     <sensor name="depth_camera" type="depth">
-      <visualize>true</visualize>
+    	<visualize>true</visualize>
       <pose>0 0 0 0 0 0</pose>
       <update_rate>30</update_rate>
       <camera>
@@ -436,22 +514,22 @@
         </clip>
       </camera>
       <plugin name="gazebo_ros_depth_camera" filename="libgazebo_ros_camera.so">
-     <baseline>0.2</baseline>
-     <alwaysOn>true</alwaysOn>
-     <updateRate>0.0</updateRate>
-     <frame_name>camera_depth_frame</frame_name>
-     <pointCloudCutoff>0.5</pointCloudCutoff>
-     <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
-     <distortionK1>0</distortionK1>
-     <distortionK2>0</distortionK2>
-     <distortionK3>0</distortionK3>
-     <distortionT1>0</distortionT1>
-     <distortionT2>0</distortionT2>
-     <CxPrime>0</CxPrime>
-     <Cx>0</Cx>
-     <Cy>0</Cy>
-     <focalLength>0</focalLength>
-     <hackBaseline>0</hackBaseline>
+				<baseline>0.2</baseline>
+				<alwaysOn>true</alwaysOn>
+				<updateRate>0.0</updateRate>
+				<frame_name>camera_depth_frame</frame_name>
+				<pointCloudCutoff>0.5</pointCloudCutoff>
+				<pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+				<distortionK1>0</distortionK1>
+				<distortionK2>0</distortionK2>
+				<distortionK3>0</distortionK3>
+				<distortionT1>0</distortionT1>
+				<distortionT2>0</distortionT2>
+				<CxPrime>0</CxPrime>
+				<Cx>0</Cx>
+				<Cy>0</Cy>
+				<focalLength>0</focalLength>
+				<hackBaseline>0</hackBaseline>
       </plugin>
     </sensor>
   </gazebo>

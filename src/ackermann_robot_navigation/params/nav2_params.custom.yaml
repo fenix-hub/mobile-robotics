@@ -1,0 +1,241 @@
+# nav2_params.yaml for ROS 2 Foxy with Ackermann robot
+
+amcl:
+  ros__parameters:
+    use_sim_time: True
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    base_frame_id: "base_footprint"  # Changed from base_chassis to base_footprint to match the URDF
+    odom_frame_id: "odom"
+    global_frame_id: "map"
+    scan_topic: "scan"
+    transform_tolerance: 0.5
+    update_min_d: 0.1
+    update_min_a: 0.1
+    min_particles: 500
+    max_particles: 2000
+    initial_pose_x: 0.0
+    initial_pose_y: 0.0
+    initial_pose_z: 0.0
+    initial_pose_yaw: 0.0
+    initial_cov_xx: 0.25
+    initial_cov_yy: 0.25
+    initial_cov_aa: 0.068
+    # Set to true to ensure the initial pose is used
+    set_initial_pose: true
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    # Robot footprint (approximate rectangular footprint, same as chassis dims + safety margin)
+    footprint: "[ [0.3, 0.2], [0.3, -0.2], [-0.3, -0.2], [-0.3, 0.2] ]"
+
+    # DWB Controller parameters
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.4
+      max_vel_y: 0.0  # Ackermann robot cannot move sideways
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.4
+      min_speed_theta: 0.0
+      acc_lim_x: 0.2
+      acc_lim_y: 0.0  # Ackermann robot cannot move sideways
+      acc_lim_theta: 0.5
+      decel_lim_x: -0.2
+      decel_lim_y: 0.0  # Ackermann robot cannot move sideways
+      decel_lim_theta: -0.5
+
+      # Goal tolerance parameters
+      yaw_goal_tolerance: 0.2
+      xy_goal_tolerance: 0.2
+
+      # Forward simulation parameters
+      sim_time: 1.5
+      sim_granularity: 0.025
+      angular_sim_granularity: 0.025
+      vx_samples: 20
+      vy_samples: 1  # Ackermann robot cannot move sideways
+      vtheta_samples: 40
+
+      # Trajectory scoring parameters
+      path_distance_bias: 32.0
+      goal_distance_bias: 20.0
+      occdist_scale: 0.02
+      forward_point_distance: 0.325
+      stop_time_buffer: 0.2
+      scaling_speed: 0.25
+      max_scaling_factor: 0.2
+
+      # Oscillation prevention parameters
+      oscillation_reset_dist: 0.05
+      oscillation_reset_angle: 0.2
+
+      # Debugging
+      publish_traj_pc: True
+      publish_cost_grid_pc: True
+
+      # Differential drive robot configuration
+      # Required for Ackermann robot simulation
+      holonomic_robot: false
+
+planner_server:
+  ros__parameters:
+    use_sim_time: True
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+map_server:
+  ros__parameters:
+    use_sim_time: True
+    yaml_filename: "blank_map.yaml"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: base_footprint
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    # Only include plugins that exist in Nav2 Foxy
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_distance_traveled_condition_bt_node
+
+recoveries_server:
+  ros__parameters:
+    use_sim_time: True
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+
+    # Recovery behaviors
+    recovery_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+    # SpinRecovery parameters
+    spin:
+      simulate_ahead_time: 2.0
+
+    # BackUpRecovery parameters
+    backup:
+      speed: 0.1
+      duration: 3.0
+
+lifecycle_manager:
+  ros__parameters:
+    use_sim_time: True
+    autostart: True
+    node_names: ["map_server", "amcl", "planner_server", "controller_server", "recoveries_server", "bt_navigator"]
+
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_footprint
+      use_sim_time: True
+      rolling_window: true
+      width: 3
+      height: 3
+      resolution: 0.05
+      
+      plugins: ["obstacle_layer", "inflation_layer"]
+      
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+      
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+        inflate_unknown: false
+        inflate_around_unknown: true
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_footprint
+      use_sim_time: True
+      
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+          
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+        inflate_unknown: false
+        inflate_around_unknown: true

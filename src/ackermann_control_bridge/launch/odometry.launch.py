@@ -43,6 +43,7 @@ def generate_launch_description():
         name='ackermann_odometry_node',
         output='screen',
         parameters=[{
+            'publish_tf': False,  # Ensure no conflicting TFs are published
             'use_sim_time': use_sim_time,
             'wheelbase': 0.4,
             'track_width': 0.3,

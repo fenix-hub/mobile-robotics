@@ -13,7 +13,7 @@ def generate_launch_description():
     desc_pkg   = get_package_share_directory('ackermann_robot_description')
 
     # URDF xacro
-    urdf_file = os.path.join(desc_pkg, 'urdf', 'ackermann_robot.urdf.xacro')
+    urdf_file = os.path.join(desc_pkg, 'urdf', 'ackermann_robot.urdf.xacro.old')
     robot_desc = Command(['xacro ', urdf_file])
 
     # Params
@@ -53,7 +53,8 @@ def generate_launch_description():
             Node(
                 package='gazebo_ros',
                 executable='spawn_entity.py',
-                arguments=['-topic', 'robot_description', '-entity', 'ackermann_robot'],
+                name='spawn_ackermann_robot',
+                arguments=['-entity', 'ackermann_robot', '-topic', 'robot_description'],
                 output='screen'
             ),
         ]),
@@ -132,17 +133,18 @@ def generate_launch_description():
                 'track_width': 0.3,
                 'wheel_radius': 0.05,
                 'odom_frame': 'odom',
+                'footprint_frame': 'base_footprint',
                 'base_frame': 'base_link',
                 'publish_rate': 50.0,
             }]
         ),
 
         # 5) Launch EKF for localization
-        Node(
-            package='robot_localization',
-            executable='ekf_node',
-            name='ekf_filter_node',  # Changed to match the name you're looking for
-            output='screen',
-            parameters=[ekf_yaml, {'use_sim_time': True}],
-        ),
+        # Node(
+        #     package='robot_localization',
+        #     executable='ekf_node',
+        #     name='ekf_filter_node',  # Changed to match the name you're looking for
+        #     output='screen',
+        #     parameters=[ekf_yaml, {'use_sim_time': True}],
+        # ),
     ])

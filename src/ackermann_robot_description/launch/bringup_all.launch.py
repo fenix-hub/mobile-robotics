@@ -17,7 +17,7 @@ def generate_launch_description():
     robot_desc = Command(['xacro ', urdf_file])
 
     # Params
-    world_file = 'nav2_tutorial.world.sdf'
+    world_file = 'obstacles.world'
     world = os.path.join(desc_pkg, 'worlds', world_file)
 
     # ros2_control configuration

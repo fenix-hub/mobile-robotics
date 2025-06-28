@@ -14,10 +14,13 @@ def generate_launch_description():
     # Process the Xacro to produce robot_description
     robot_description = Command(['xacro ', urdf_file])
 
+    # Use the obstacles world instead of empty world
+    world_file = os.path.join(pkg_share, 'worlds', 'obstacles.world')
+
     return LaunchDescription([
         # Launch Gazebo
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', os.path.join(pkg_share, 'worlds', 'empty.world')],
+            cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world_file],
             output='screen'
         ),
 

@@ -39,45 +39,28 @@
     <!-- Define inertial property macros  -->
 
   <xacro:macro name="box_inertia" params="m w h d">
-
     <inertial>
-
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
-
       <mass value="${m}"/>
-
       <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0" iyy="${(m/12) * (w*w + d*d)}" iyz="0.0" izz="${(m/12) * (w*w + h*h)}"/>
-
     </inertial>
-
   </xacro:macro>
 
 
   <xacro:macro name="cylinder_inertia" params="m r h">
-
     <inertial>
-
       <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
-
       <mass value="${m}"/>
-
       <inertia ixx="${(m/12) * (3*r*r + h*h)}" ixy = "0" ixz = "0" iyy="${(m/12) * (3*r*r + h*h)}" iyz = "0" izz="${(m/2) * (r*r)}"/>
-
     </inertial>
-
   </xacro:macro>
 
 
   <xacro:macro name="sphere_inertia" params="m r">
-
     <inertial>
-
       <mass value="${m}"/>
-
       <inertia ixx="${(2/5) * m * (r*r)}" ixy="0.0" ixz="0.0" iyy="${(2/5) * m * (r*r)}" iyz="0.0" izz="${(2/5) * m * (r*r)}"/>
-
     </inertial>
-
   </xacro:macro>
   
   
@@ -313,131 +296,39 @@
   <!--**********************-->
   <!-- Sensors -->
   <!--**********************-->
-  <link name="imu_link">
-    <visual>
-      <geometry>
-        <box size="${imu_size} ${imu_size} ${imu_size}"/>
-      </geometry>
-      <material name="Red">
-        <color rgba="0.8 0.1 0.1 1.0"/>
-      </material>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${imu_size} ${imu_size} ${imu_size}"/>
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </collision>
-    <xacro:box_inertia m="0.1" w="${imu_size}" d="${imu_size}" h="${imu_size}"/>
-  </link>
-
-  <joint name="imu_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="imu_link"/>
-    <!-- Adjust the position relative to the center of base_link -->
-    <origin xyz="-${wheelbase/4} 0 ${chassis_height/2 + imu_size/2}" rpy="0 0 0"/>
-  </joint>
-
-  <gazebo reference="imu_link">
-		<sensor name="imu_sensor" type="imu">
-		 <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-		    <ros>
-		      <remapping>~/out:=imu</remapping>
-		    </ros>
-		    <initial_orientation_as_reference>false</initial_orientation_as_reference>
-		  </plugin>
-		  <always_on>true</always_on>
-		  <update_rate>100</update_rate>
-		  <visualize>true</visualize>
-		  <imu>
-		    <angular_velocity>
-		      <x>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>2e-4</stddev>
-		          <bias_mean>0.0000075</bias_mean>
-		          <bias_stddev>0.0000008</bias_stddev>
-		        </noise>
-		      </x>
-		      <y>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>2e-4</stddev>
-		          <bias_mean>0.0000075</bias_mean>
-		          <bias_stddev>0.0000008</bias_stddev>
-		        </noise>
-		      </y>
-		      <z>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>2e-4</stddev>
-		          <bias_mean>0.0000075</bias_mean>
-		          <bias_stddev>0.0000008</bias_stddev>
-		        </noise>
-		      </z>
-		    </angular_velocity>
-
-		    <linear_acceleration>
-		      <x>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>1.7e-2</stddev>
-		          <bias_mean>0.1</bias_mean>
-		          <bias_stddev>0.001</bias_stddev>
-		        </noise>
-		      </x>
-
-		      <y>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>1.7e-2</stddev>
-		          <bias_mean>0.1</bias_mean>
-		          <bias_stddev>0.001</bias_stddev>
-		        </noise>
-		      </y>
-
-		      <z>
-		        <noise type="gaussian">
-		          <mean>0.0</mean>
-		          <stddev>1.7e-2</stddev>
-		          <bias_mean>0.1</bias_mean>
-		          <bias_stddev>0.001</bias_stddev>
-		        </noise>
-		      </z>
-		    </linear_acceleration>
-		  </imu>
-		</sensor>
-	</gazebo>
   
   <link name="lidar_link">
-    <visual>
-      <geometry>
-        <cylinder length="${lidar_height}" radius="${lidar_radius}"/>
-      </geometry>
-      <material name="Green">
-        <color rgba="0.1 0.8 0.1 1.0"/>
-      </material>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </visual>
-    <collision>
-      <geometry>
-        <cylinder length="${lidar_height}" radius="${lidar_radius}"/>
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </collision>
     <inertial>
-      <mass value="0.1"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <mass value="0.125"/>
+      <inertia ixx="0.001"  ixy="0"  ixz="0" iyy="0.001" iyz="0" izz="0.001" />
     </inertial>
+
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <cylinder radius="0.0508" length="0.055"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <cylinder radius="0.0508" length="0.055"/>
+      </geometry>
+    </visual>
   </link>
+
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
     <!-- Adjust the position relative to the center of base_link -->
     <origin xyz="0 0 ${chassis_height/2 + lidar_height/2}" rpy="0 0 0"/>
   </joint>
+
+
+
   <gazebo reference="lidar_link">
     <sensor name="lidar" type="ray">
       <pose>0 0 0 0 0 0</pose>
@@ -445,16 +336,22 @@
       <ray>
         <scan>
           <horizontal>
-            <samples>720</samples>
-            <min_angle>-1.5708</min_angle>
-            <max_angle>1.5708</max_angle>
+            <samples>360</samples>
+            <resolution>1.000000</resolution>
+            <min_angle>-0.000000</min_angle>
+            <max_angle>6.280000</max_angle>
           </horizontal>
         </scan>
         <range>
           <min>0.1</min>
-          <max>10.0</max>
-          <resolution>0.01</resolution>
+          <max>3.5</max>
+          <resolution>0.015000</resolution>
         </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
       </ray>
       <plugin name="gazebo_ros_laser" filename="libgazebo_ros_ray_sensor.so">
 		  <ros>
@@ -466,72 +363,23 @@
     </sensor>
   </gazebo>
 
-  <link name="depth_camera_link">
-    <visual>
-      <geometry>
-        <box size="${camera_size} ${camera_size} ${camera_size}"/>
-      </geometry>
-      <material name="Yellow">
-        <color rgba="0.8 0.8 0.1 1.0"/>
-      </material>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${camera_size} ${camera_size} ${camera_size}"/>
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </collision>
-    <inertial>
-      <mass value="0.2"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0.002" ixy="0.0" ixz="0.0" iyy="0.002" iyz="0.0" izz="0.002"/>
-    </inertial>
-  </link>
-  
-  <joint name="depth_camera_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="depth_camera_link"/>
-    <!-- Adjust the position relative to the center of base_link -->
-    <origin xyz="0 0 ${chassis_height/2 + lidar_height + camera_size/2}" rpy="0 0 0"/>
-  </joint>
-  
-  <gazebo reference="depth_camera_link">
-    <sensor name="depth_camera" type="depth">
-    	<visualize>true</visualize>
-      <pose>0 0 0 0 0 0</pose>
-      <update_rate>30</update_rate>
-      <camera>
-        <horizontal_fov>1.047</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.05</near>
-          <far>10.0</far>
-        </clip>
-      </camera>
-      <plugin name="gazebo_ros_depth_camera" filename="libgazebo_ros_camera.so">
-				<baseline>0.2</baseline>
-				<alwaysOn>true</alwaysOn>
-				<updateRate>0.0</updateRate>
-				<frame_name>camera_depth_frame</frame_name>
-				<pointCloudCutoff>0.5</pointCloudCutoff>
-				<pointCloudCutoffMax>3.0</pointCloudCutoffMax>
-				<distortionK1>0</distortionK1>
-				<distortionK2>0</distortionK2>
-				<distortionK3>0</distortionK3>
-				<distortionT1>0</distortionT1>
-				<distortionT2>0</distortionT2>
-				<CxPrime>0</CxPrime>
-				<Cx>0</Cx>
-				<Cy>0</Cy>
-				<focalLength>0</focalLength>
-				<hackBaseline>0</hackBaseline>
-      </plugin>
-    </sensor>
-  </gazebo>
+  <!-- IMU sensor mounted at the robot’s center -->
+<gazebo reference="base_link">
+  <sensor name="imu_sensor" type="imu">
+    <update_rate>50.0</update_rate>
+    <imu>
+      <!-- optional tune noise levels -->
+      <gaussian_noise>0.0001</gaussian_noise>
+    </imu>
+    <plugin name="gazebo_ros_imu" filename="libgazebo_ros_imu_sensor.so">
+      <!-- topic where data will be published -->
+      <topicName>imu/data</topicName>
+      <!-- coordinate frame of the published data -->
+      <frameName>base_link</frameName>
+      <!-- you can tune noise to match your simulation fidelity -->
+      <gaussianNoise>0.0001</gaussianNoise>
+    </plugin>
+  </sensor>
+</gazebo>
 
 </robot>

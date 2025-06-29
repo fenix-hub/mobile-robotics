@@ -13,7 +13,7 @@ def generate_launch_description():
     desc_pkg   = get_package_share_directory('ackermann_robot_description')
 
     # URDF xacro
-    urdf_file = os.path.join(desc_pkg, 'urdf', 'ackermann_robot.urdf.xacro.old')
+    urdf_file = os.path.join(desc_pkg, 'urdf', 'ackermann_robot.urdf.xacro')
     robot_desc = Command(['xacro ', urdf_file])
 
     # Params
@@ -37,12 +37,6 @@ def generate_launch_description():
                 name='joint_state_publisher',
                 output='screen'
             ),
-            # Node(
-            #     package='joint_state_publisher_gui',
-            #     executable='joint_state_publisher_gui',
-            #     name='joint_state_publisher_gui',
-            #     output='screen'
-            # ),
             Node(
                 package='robot_state_publisher',
                 executable='robot_state_publisher',

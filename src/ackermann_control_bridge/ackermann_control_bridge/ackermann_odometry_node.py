@@ -262,13 +262,13 @@ class AckermannOdometryNode(Node):
         self.publish_odom_tf_and_msg(current_time)
 
         # Debugging logs:
-        self.get_logger().info(f'--- Debug Odometria ---')
-        self.get_logger().info(f'Encoder Model: Vx={linear_x_encoder_model:.2f}, Vtheta={angular_z_encoder_model:.2f}')
-        self.get_logger().info(
+        self.get_logger().debug(f'--- Debug Odometria ---')
+        self.get_logger().debug(f'Encoder Model: Vx={linear_x_encoder_model:.2f}, Vtheta={angular_z_encoder_model:.2f}')
+        self.get_logger().debug(
             f'Last Cmd_vel: linear_x={self.last_cmd_linear_x:.2f}, angular_z={self.last_cmd_angular_z:.2f}')
-        self.get_logger().info(f'Fused Vel: vx={self.vx:.2f}, vtheta={self.vtheta:.2f}')
-        self.get_logger().info(f'Current Odom Pose: x={self.x:.2f}, y={self.y:.2f}, theta={self.theta:.2f}')
-        self.get_logger().info(f'-----------------------')
+        self.get_logger().debug(f'Fused Vel: vx={self.vx:.2f}, vtheta={self.vtheta:.2f}')
+        self.get_logger().debug(f'Current Odom Pose: x={self.x:.2f}, y={self.y:.2f}, theta={self.theta:.2f}')
+        self.get_logger().debug(f'-----------------------')
 
     def publish_odom_tf_and_msg(self, current_time: Time):
         # Pubblica la trasformata (odom -> base_footprint)

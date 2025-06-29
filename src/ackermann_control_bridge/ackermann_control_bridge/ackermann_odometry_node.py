@@ -1,280 +1,350 @@
 #!/usr/bin/env python3
-import math
-from typing import Optional, Tuple
 
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
+from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped, Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState, Imu
-from std_msgs.msg import Header
-from tf2_ros import TransformBroadcaster
+
+import math
+import numpy as np
+from typing import Tuple, Optional
 
 
 class AckermannOdometryNode(Node):
     def __init__(self):
         super().__init__('ackermann_odometry_node')
 
-        # ——— parameters —————————————————————————————————————————————————
-        self.declare_parameter('wheelbase',                  0.4)
-        self.declare_parameter('track_width',                0.3)
-        self.declare_parameter('wheel_radius',               0.05)
-        self.declare_parameter('odom_frame',                 'odom')
-        self.declare_parameter('base_frame',                 'base_link')
-        self.declare_parameter('footprint_frame',            'base_footprint')
-        self.declare_parameter('publish_rate',               50.0)
+        # Dichiarazione parametri del robot
+        self.declare_parameter('wheelbase', 0.4)  # Distanza tra asse anteriore e posteriore
+        self.declare_parameter('track_width', 0.3)  # Distanza tra i centri delle ruote su un asse
+        self.declare_parameter('wheel_radius', 0.05)  # Raggio delle ruote
+        self.declare_parameter('odom_frame', 'odom')
+        self.declare_parameter('base_frame', 'base_link')
+        self.declare_parameter('footprint_frame', 'base_footprint')
+        self.declare_parameter('publish_rate', 50.0)  # Frequenza di pubblicazione (Hz)
 
-        # IMU fusion
-        self.declare_parameter('use_imu',                    True)
-        self.declare_parameter('imu_weight',                 0.6)
+        # Nomi dei giunti (da configurare per il tuo robot)
+        self.declare_parameter('rear_left_wheel_joint_name', 'rear_left_wheel_joint')
+        self.declare_parameter('rear_right_wheel_joint_name', 'rear_right_wheel_joint')
+        self.declare_parameter('front_left_steer_joint_name', 'front_left_steer_joint')
+        self.declare_parameter('front_right_steer_joint_name', 'front_right_steer_joint')
 
-        # encoder / cmd_vel fusion
-        self.declare_parameter('wheel_encoder_weight',       0.8)
-        self.declare_parameter('cmd_vel_weight',             0.3)
-        self.declare_parameter('velocity_timeout',           0.5)
+        # Pesi per la fusione dell'odometria (0-1)
+        self.declare_parameter('imu_orientation_weight', 0.7)
+        self.declare_parameter('wheel_encoder_weight', 0.7)
+        self.declare_parameter('cmd_vel_weight', 0.1)  # Peso più basso per cmd_vel
 
-        # filtering
-        self.declare_parameter('max_linear_accel',           2.0)
-        self.declare_parameter('max_angular_accel',          4.0)
-
-        # deadband thresholds
-        self.declare_parameter('linear_deadband',            0.001)
-        self.declare_parameter('angular_deadband',           0.01)
-
-        # read parameters
-        self.wheelbase            = self.get_parameter('wheelbase').value
-        self.track_width          = self.get_parameter('track_width').value
-        self.wheel_radius         = self.get_parameter('wheel_radius').value
-        self.odom_frame           = self.get_parameter('odom_frame').value
-        self.base_frame           = self.get_parameter('base_frame').value
-        self.footprint_frame      = self.get_parameter('footprint_frame').value
-        self.publish_rate         = self.get_parameter('publish_rate').value
-
-        self.use_imu              = self.get_parameter('use_imu').value
-        self.imu_weight           = self.get_parameter('imu_weight').value
-
+        self.wheelbase = self.get_parameter('wheelbase').value
+        self.track_width = self.get_parameter('track_width').value
+        self.wheel_radius = self.get_parameter('wheel_radius').value
+        self.odom_frame = self.get_parameter('odom_frame').value
+        self.base_frame = self.get_parameter('base_frame').value
+        self.footprint_frame = self.get_parameter('footprint_frame').value
+        self.publish_rate = self.get_parameter('publish_rate').value
+        self.imu_orientation_weight = self.get_parameter('imu_orientation_weight').value
         self.wheel_encoder_weight = self.get_parameter('wheel_encoder_weight').value
-        self.cmd_vel_weight       = self.get_parameter('cmd_vel_weight').value
-        self.velocity_timeout     = self.get_parameter('velocity_timeout').value
+        self.cmd_vel_weight = self.get_parameter('cmd_vel_weight').value
 
-        self.max_linear_accel     = self.get_parameter('max_linear_accel').value
-        self.max_angular_accel    = self.get_parameter('max_angular_accel').value
+        self.rear_left_wheel_joint_name = self.get_parameter('rear_left_wheel_joint_name').value
+        self.rear_right_wheel_joint_name = self.get_parameter('rear_right_wheel_joint_name').value
+        self.front_left_steer_joint_name = self.get_parameter('front_left_steer_joint_name').value
+        self.front_right_steer_joint_name = self.get_parameter('front_right_steer_joint_name').value
 
-        self.linear_deadband      = self.get_parameter('linear_deadband').value
-        self.angular_deadband     = self.get_parameter('angular_deadband').value
-
-        # ——— odometry state ————————————————————————————————————————————————
-        self.x    = 0.0
-        self.y    = 0.0
-        self.theta= 0.0
-        self.vx   = 0.0
+        # Inizializzazione stato odometria
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = 0.0
+        self.vx = 0.0
+        self.vy = 0.0  # Rimarrà 0 per Ackermann
         self.vtheta = 0.0
 
-        # last inputs
-        self.last_time           = self.get_clock().now()
-        self.last_joint_time: Optional[rclpy.time.Time] = None
-        self.last_cmd_time: Optional[rclpy.time.Time]   = None
+        # Ultimi dati sensore noti per il calcolo dell'odometria
+        self.last_joint_states_time: Optional[rclpy.time.Time] = None
+        self.last_imu_yaw: Optional[float] = None
+        self.last_cmd_vel_time: Optional[rclpy.time.Time] = None
+        self.last_cmd_linear_x: float = 0.0
+        self.last_cmd_angular_z: float = 0.0
 
-        self.last_cmd_linear_x   = 0.0
-        self.last_cmd_angular_z  = 0.0
+        # Valori dai Joint States
+        self.rear_left_wheel_vel: float = 0.0
+        self.rear_right_wheel_vel: float = 0.0
+        self.front_left_steer_angle: float = 0.0
+        self.front_right_steer_angle: float = 0.0
 
-        self.last_wheel_velocities = {
-            'front_left': 0.0,
-            'front_right':0.0,
-            'rear_left':  0.0,
-            'rear_right': 0.0
-        }
-        self.last_vx             = 0.0
-        self.last_vtheta         = 0.0
+        # TF broadcaster per la trasformata odom -> base_footprint
+        self.tf_broadcaster = TransformBroadcaster(self)
 
-        # IMU storage
-        self.last_imu_time        = None
-        self.imu_angular_velocity = 0.0
-        self.imu_yaw              = 0.0
+        # Publisher per il messaggio Odometry
+        self.odom_publisher = self.create_publisher(
+            Odometry,
+            '/odom',
+            QoSProfile(reliability=QoSReliabilityPolicy.RELIABLE, history=QoSHistoryPolicy.KEEP_LAST, depth=10)
+        )
 
-        # ——— publishers, subscribers, broadcaster ————————————————————
-        qos_sensor = QoSProfile(
+        # Iscrizioni ai topic
+        qos_profile_sensor_data = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1
         )
-        self.create_subscription(Twist,      '/cmd_vel',     self.cmd_vel_callback,     qos_sensor)
-        self.create_subscription(JointState, '/joint_states',self.joint_state_callback,qos_sensor)
-        self.create_subscription(Imu,        '/imu/data',    self.imu_callback,         qos_sensor)
-
-        odom_qos = QoSProfile(
-            reliability=QoSReliabilityPolicy.RELIABLE,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10
+        self.create_subscription(
+            Twist,
+            '/cmd_vel',
+            self.cmd_vel_callback,
+            qos_profile_sensor_data
         )
-        self.odom_publisher = self.create_publisher(Odometry, '/odom', odom_qos)
-        self.tf_broadcaster = TransformBroadcaster(self)
+        self.create_subscription(
+            JointState,
+            '/joint_states',
+            self.joint_state_callback,
+            qos_profile_sensor_data
+        )
+        self.create_subscription(
+            Imu,
+            '/imu/data',
+            self.imu_callback,
+            qos_profile_sensor_data
+        )
 
-        # timer
-        self.create_timer(1.0 / self.publish_rate, self.publish_odom)
-
-        self.get_logger().info('Ackermann Odometry Node started.')
+        # Timer per la pubblicazione dell'odometria
+        self.timer = self.create_timer(1.0 / self.publish_rate, self.publish_odom_and_update_pose)
+        self.get_logger().info('Ackermann Odometry Node has started!')
 
     def cmd_vel_callback(self, msg: Twist):
-        self.last_cmd_linear_x  = msg.linear.x
+        self.last_cmd_linear_x = msg.linear.x
         self.last_cmd_angular_z = msg.angular.z
-        self.last_cmd_time      = self.get_clock().now()
-
-    def imu_callback(self, msg: Imu):
-        now = self.get_clock().now()
-        self.last_imu_time = now
-        # yaw from quaternion
-        q = msg.orientation
-        siny = 2.0*(q.w*q.z + q.x*q.y)
-        cosy = 1.0 - 2.0*(q.y*q.y + q.z*q.z)
-        self.imu_yaw              = math.atan2(siny, cosy)
-        self.imu_angular_velocity = msg.angular_velocity.z
+        self.last_cmd_vel_time = self.get_clock().now()
 
     def joint_state_callback(self, msg: JointState):
-        now = self.get_clock().now()
-        if self.last_joint_time is None:
-            dt = (now - self.last_time).nanoseconds / 1e9
-        else:
-            dt = (now - self.last_joint_time).nanoseconds / 1e9
-        if dt <= 0.0:
+        # Estrai velocità delle ruote motrici e angoli di sterzo
+        for i, name in enumerate(msg.name):
+            if name == self.rear_left_wheel_joint_name and i < len(msg.velocity):
+                self.rear_left_wheel_vel = msg.velocity[i]
+            elif name == self.rear_right_wheel_joint_name and i < len(msg.velocity):
+                self.rear_right_wheel_vel = msg.velocity[i]
+            elif name == self.front_left_steer_joint_name and i < len(msg.position):
+                self.front_left_steer_angle = msg.position[i]
+            elif name == self.front_right_steer_joint_name and i < len(msg.position):
+                self.front_right_steer_angle = msg.position[i]
+
+        self.last_joint_states_time = self.get_clock().now()
+
+    def imu_callback(self, msg: Imu):
+        # Estrai lo yaw dalla quaternione IMU
+        _, _, imu_yaw = self.quaternion_to_euler(
+            msg.orientation.x,
+            msg.orientation.y,
+            msg.orientation.z,
+            msg.orientation.w
+        )
+        self.last_imu_yaw = imu_yaw
+
+    def publish_odom_and_update_pose(self):
+        current_time = self.get_clock().now()
+
+        # Calcolo dt basato sull'ultima lettura valida di joint_states
+        if self.last_joint_states_time is None:
+            # Non abbiamo ancora ricevuto dati da joint_states, non possiamo calcolare l'odometria da encoder/sterzo
+            # Potremmo usare solo cmd_vel qui, ma per precisione aspettiamo i sensori reali.
+            # Alternativa: se vogliamo che il robot si muova immediatamente con cmd_vel anche senza encoder,
+            # potremmo usare self.vx = self.last_cmd_linear_x * self.cmd_vel_weight
+            # e self.vtheta = self.last_cmd_angular_z * self.cmd_vel_weight
+            # con i dovuti pesi e normalizzazioni.
+            self.get_logger().warn("Waiting for first /joint_states message to calculate odometry.")
             return
 
-        # extract wheel velocities and steering
-        fl=fr=rl=rr=0.0
-        steer_sum=0.0; steer_cnt=0
-        for i,name in enumerate(msg.name):
-            if name=='front_left_wheel_joint':  fl = msg.velocity[i]
-            if name=='front_right_wheel_joint': fr = msg.velocity[i]
-            if name=='rear_left_wheel_joint':   rl = msg.velocity[i]
-            if name=='rear_right_wheel_joint':  rr = msg.velocity[i]
-            if name=='front_left_steering_joint':
-                steer_sum += msg.position[i]; steer_cnt+=1
-            if name=='front_right_steering_joint':
-                steer_sum += msg.position[i]; steer_cnt+=1
+        dt = (current_time - (
+                    self.last_joint_states_time or current_time)).nanoseconds / 1e9  # Usa last_joint_states_time se disponibile, altrimenti current_time
 
-        steering = steer_sum/steer_cnt if steer_cnt>0 else 0.0
-        # convert to m/s
-        rl_mps = rl * self.wheel_radius
-        rr_mps = rr * self.wheel_radius
+        if dt <= 0:
+            return
 
-        # deadband on raw velocities
-        if abs(rl_mps) < self.linear_deadband: rl_mps = 0.0
-        if abs(rr_mps) < self.linear_deadband: rr_mps = 0.0
+        # --- Calcolo di Vx e Vtheta da Encoder Ruote e Angoli di Sterzo (Modello Ackermann) ---
+        linear_x_encoder_model = 0.0
+        angular_z_encoder_model = 0.0
 
-        linear_x_enc = (rl_mps + rr_mps)/2.0
+        # Velocità lineare dal feedback delle ruote posteriori
+        wheel_avg_velocity = (self.rear_left_wheel_vel + self.rear_right_wheel_vel) / 2.0
+        linear_x_encoder_model = wheel_avg_velocity * self.wheel_radius
 
-        # angular from steering
-        if abs(linear_x_enc)>self.linear_deadband and abs(steering)>1e-3:
-            angular_z_enc = linear_x_enc * math.tan(steering) / self.wheelbase
+        # Velocità angolare dal modello a bicicletta (usa angolo di sterzo medio)
+        # Protezione per NaN e divisione per zero
+        if math.isnan(self.front_left_steer_angle) or math.isnan(self.front_right_steer_angle):
+            self.get_logger().warn(
+                "NaN detected in steering angles from JointState. Using zero angular velocity from model.")
+            angular_z_encoder_model = 0.0
         else:
-            # fallback diff-wheel
-            angular_z_enc = (rr_mps - rl_mps)/self.track_width
+            steer_angle_avg = (self.front_left_steer_angle + self.front_right_steer_angle) / 2.0
 
-        # deadband angular
-        if abs(angular_z_enc) < self.angular_deadband:
-            angular_z_enc = 0.0
+            if abs(steer_angle_avg) < 1e-4:  # Piccolissimo angolo di sterzo, assumiamo movimento dritto
+                angular_z_encoder_model = 0.0
+            else:
+                try:
+                    # v_theta = v_linear * tan(steer_angle) / wheelbase
+                    angular_z_encoder_model = linear_x_encoder_model * math.tan(steer_angle_avg) / self.wheelbase
+                except ZeroDivisionError:
+                    self.get_logger().warn(
+                        "Division by zero in angular velocity calculation (wheelbase is zero?). Using zero angular velocity from model.")
+                    angular_z_encoder_model = 0.0
+                except ValueError:  # math.tan of very large angle (close to pi/2)
+                    self.get_logger().warn(
+                        "Invalid steering angle for tan calculation. Using zero angular velocity from model.")
+                    angular_z_encoder_model = 0.0
 
-        # accel limiting
-        lin_acc = (linear_x_enc - self.last_vx)/dt
-        ang_acc = (angular_z_enc - self.last_vtheta)/dt
-        if abs(lin_acc) > self.max_linear_accel:
-            linear_x_enc = self.last_vx + math.copysign(self.max_linear_accel*dt, lin_acc)
-        if abs(ang_acc) > self.max_angular_accel:
-            angular_z_enc = self.last_vtheta + math.copysign(self.max_angular_accel*dt, ang_acc)
+        # --- Fusione delle Velocità ---
+        fused_vx = (linear_x_encoder_model * self.wheel_encoder_weight)
+        fused_vtheta = (angular_z_encoder_model * self.wheel_encoder_weight)
 
-        # fuse with cmd_vel
-        total_w_lin = self.wheel_encoder_weight
-        total_w_ang = self.wheel_encoder_weight
-        fused_lin = linear_x_enc * self.wheel_encoder_weight
-        fused_ang = angular_z_enc * self.wheel_encoder_weight
+        total_weight_linear = self.wheel_encoder_weight
+        total_weight_angular = self.wheel_encoder_weight
 
-        if self.last_cmd_time is not None:
-            age = (now - self.last_cmd_time).nanoseconds / 1e9
-            if age < self.velocity_timeout:
-                fused_lin += self.last_cmd_linear_x * self.cmd_vel_weight
-                fused_ang += self.last_cmd_angular_z * self.cmd_vel_weight
-                total_w_lin += self.cmd_vel_weight
-                total_w_ang += self.cmd_vel_weight
+        # Fonde con cmd_vel se recente
+        if self.last_cmd_vel_time is not None and (current_time - self.last_cmd_vel_time).nanoseconds / 1e9 < 0.5:
+            fused_vx += (self.last_cmd_linear_x * self.cmd_vel_weight)
+            fused_vtheta += (
+                        self.last_cmd_angular_z * self.cmd_vel_weight)  # cmd_vel angular is often absolute for robot base
+            total_weight_linear += self.cmd_vel_weight
+            total_weight_angular += self.cmd_vel_weight
 
-        fused_lin /= total_w_lin
-        fused_ang /= total_w_ang
+        # Fonde con IMU per l'orientamento (se disponibile e se il peso IMU è alto, l'IMU può dominare l'angolo assoluto)
+        # Per la velocità angolare, l'IMU può fornire una stima più diretta di vtheta.
+        # Questa fusione è per la posa, non direttamente per vtheta qui, vtheta è calcolata dal modello.
+        # Per vtheta, se l'IMU fornisce anche velocità angolare, potresti fonderla qui.
+        # Per ora, la fusione IMU è più per la correzione della posa theta.
 
-        self.vx     = fused_lin
-        self.vtheta = fused_ang
+        if total_weight_linear > 0:
+            self.vx = fused_vx / total_weight_linear
+        else:
+            self.vx = 0.0  # Se non ci sono input validi, la velocità lineare è zero
 
-        # fuse with IMU for orientation
-        if self.use_imu and self.last_imu_time:
-            imu_age = (now - self.last_imu_time).nanoseconds / 1e9
-            if imu_age < 0.1:
-                # trust IMU for yaw
-                self.theta = self.imu_yaw
-                # fuse angular rate too
-                fused_ang = (
-                    angular_z_enc*self.wheel_encoder_weight +
-                    self.imu_angular_velocity*self.imu_weight
-                )/(self.wheel_encoder_weight + self.imu_weight)
-                self.vtheta = fused_ang
+        if total_weight_angular > 0:
+            self.vtheta = fused_vtheta / total_weight_angular
+        else:
+            self.vtheta = 0.0  # Se non ci sono input validi, la velocità angolare è zero
 
-        # integrate position
-        dx = self.vx * math.cos(self.theta) * dt
-        dy = self.vx * math.sin(self.theta) * dt
-        self.x += dx
-        self.y += dy
-        # theta set by IMU fusion above
+        # --- Aggiornamento della Posa ---
+        delta_x = self.vx * math.cos(self.theta) * dt
+        delta_y = self.vx * math.sin(self.theta) * dt
+        delta_theta = self.vtheta * dt
 
-        # store for next iter
-        self.last_vx           = self.vx
-        self.last_vtheta       = self.vtheta
-        self.last_joint_time   = now
+        self.x += delta_x
+        self.y += delta_y
+        self.theta += delta_theta
 
-    def publish_odom(self):
-        now = self.get_clock().now()
+        # Ensure last_time is initialized
+        if not hasattr(self, 'last_time'):
+            self.last_time = current_time
 
-        # TF: odom → base_footprint
-        tf = TransformStamped()
-        tf.header.stamp = now.to_msg()
-        tf.header.frame_id = self.odom_frame
-        tf.child_frame_id  = self.footprint_frame
-        tf.transform.translation.x = self.x
-        tf.transform.translation.y = self.y
-        tf.transform.rotation.x, \
-        tf.transform.rotation.y, \
-        tf.transform.rotation.z, \
-        tf.transform.rotation.w = self.euler_to_quaternion(0,0,self.theta)
-        self.tf_broadcaster.sendTransform(tf)
+        # Update theta using angular velocity from cmd_vel
+        delta_theta = self.last_cmd_angular_z * (current_time - self.last_time).nanoseconds * 1e-9
+        self.theta += delta_theta
+        self.theta = math.fmod(self.theta + math.pi, 2 * math.pi) - math.pi  # Normalize to [-π, π]
 
-        # Odometry msg
-        odom = Odometry()
-        odom.header.stamp    = now.to_msg()
-        odom.header.frame_id = self.odom_frame
-        odom.child_frame_id  = self.footprint_frame
+        # Update last_time
+        self.last_time = current_time
 
-        odom.pose.pose.position.x = self.x
-        odom.pose.pose.position.y = self.y
-        odom.pose.pose.orientation.x, \
-        odom.pose.pose.orientation.y, \
-        odom.pose.pose.orientation.z, \
-        odom.pose.pose.orientation.w = self.euler_to_quaternion(0,0,self.theta)
+        # Fusione dello yaw IMU per la correzione della posa assoluta
+        # Questo sovrascrive parzialmente lo yaw calcolato dall'odometria
+        if self.last_imu_yaw is not None and self.imu_orientation_weight > 0:
+            # Per una fusione più robusta, è meglio usare un filtro (es. EKF).
+            # Qui si applica una media ponderata diretta.
+            self.theta = (self.theta * (1.0 - self.imu_orientation_weight)) + (
+                        self.last_imu_yaw * self.imu_orientation_weight)
 
-        odom.twist.twist.linear.x  = self.vx
-        odom.twist.twist.angular.z = self.vtheta
+        self.theta = math.fmod(self.theta, 2 * math.pi)  # Normalizza l'angolo
 
-        # you can keep your covariance settings here…
+        # --- Pubblicazione delle Trasformate e del Messaggio Odometry ---
+        self.publish_odom_tf_and_msg(current_time)
 
-        self.odom_publisher.publish(odom)
+        # Debugging logs:
+        self.get_logger().info(f'--- Debug Odometria ---')
+        self.get_logger().info(f'Encoder Model: Vx={linear_x_encoder_model:.2f}, Vtheta={angular_z_encoder_model:.2f}')
+        self.get_logger().info(
+            f'Last Cmd_vel: linear_x={self.last_cmd_linear_x:.2f}, angular_z={self.last_cmd_angular_z:.2f}')
+        self.get_logger().info(f'Fused Vel: vx={self.vx:.2f}, vtheta={self.vtheta:.2f}')
+        self.get_logger().info(f'Current Odom Pose: x={self.x:.2f}, y={self.y:.2f}, theta={self.theta:.2f}')
+        self.get_logger().info(f'-----------------------')
+
+    def publish_odom_tf_and_msg(self, current_time: Time):
+        # Pubblica la trasformata (odom -> base_footprint)
+        odom_tf = TransformStamped()
+        odom_tf.header.stamp = current_time.to_msg()
+        odom_tf.header.frame_id = self.odom_frame
+        odom_tf.child_frame_id = self.footprint_frame
+        odom_tf.transform.translation.x = self.x
+        odom_tf.transform.translation.y = self.y
+        odom_tf.transform.translation.z = 0.0  # Si assume robot 2D
+        qx, qy, qz, qw = self.euler_to_quaternion(0.0, 0.0, self.theta)
+        odom_tf.transform.rotation.x = qx
+        odom_tf.transform.rotation.y = qy
+        odom_tf.transform.rotation.z = qz
+        odom_tf.transform.rotation.w = qw
+        self.tf_broadcaster.sendTransform(odom_tf)
+
+        # Pubblica il messaggio Odometry
+        odom_msg = Odometry()
+        odom_msg.header.stamp = current_time.to_msg()
+        odom_msg.header.frame_id = self.odom_frame
+        odom_msg.child_frame_id = self.footprint_frame
+        odom_msg.pose.pose.position.x = self.x
+        odom_msg.pose.pose.position.y = self.y
+        odom_msg.pose.pose.position.z = 0.0
+        odom_msg.pose.pose.orientation.x = qx
+        odom_msg.pose.pose.orientation.y = qy
+        odom_msg.pose.pose.orientation.z = qz
+        odom_msg.pose.pose.orientation.w = qw
+
+        odom_msg.twist.twist.linear.x = self.vx
+        odom_msg.twist.twist.linear.y = self.vy
+        odom_msg.twist.twist.angular.z = self.vtheta
+
+        # Aggiungi la covarianza (diagonale semplice per ora, regola in base al rumore dei sensori)
+        odom_msg.pose.covariance = np.diag([
+            0.05, 0.05, 0.0, 0.0, 0.0, 0.03  # x, y, z, roll, pitch, yaw
+        ]).flatten().tolist()
+        odom_msg.twist.covariance = np.diag([
+            0.05, 0.05, 0.0, 0.0, 0.0, 0.03  # vx, vy, vz, vroll, vpitch, vyaw
+        ]).flatten().tolist()
+
+        self.odom_publisher.publish(odom_msg)
 
     @staticmethod
-    def euler_to_quaternion(roll, pitch, yaw) -> Tuple[float,float,float,float]:
-        cr = math.cos(roll/2); sr = math.sin(roll/2)
-        cp = math.cos(pitch/2); sp = math.sin(pitch/2)
-        cy = math.cos(yaw/2); sy = math.sin(yaw/2)
-        qw = cr*cp*cy + sr*sp*sy
-        qx = sr*cp*cy - cr*sp*sy
-        qy = cr*sp*cy + sr*cp*sy
-        qz = cr*cp*sy - sr*sp*cy
+    def euler_to_quaternion(roll, pitch, yaw) -> Tuple[float, float, float, float]:
+        cy = math.cos(yaw * 0.5)
+        sy = math.sin(yaw * 0.5)
+        cp = math.cos(pitch * 0.5)
+        sp = math.sin(pitch * 0.5)
+        cr = math.cos(roll * 0.5)
+        sr = math.sin(roll * 0.5)
+
+        qw = cr * cp * cy + sr * sp * sy
+        qx = sr * cp * cy - cr * sp * sy
+        qy = cr * sp * cy + sr * cp * sy
+        qz = cr * cp * sy - sr * sp * cy
+
         return qx, qy, qz, qw
+
+    @staticmethod
+    def quaternion_to_euler(x, y, z, w) -> Tuple[float, float, float]:
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll = math.atan2(t0, t1)
+
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch = math.asin(t2)
+
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw = math.atan2(t3, t4)
+
+        return roll, pitch, yaw
 
 
 def main(args=None):

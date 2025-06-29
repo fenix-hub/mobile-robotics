@@ -1,18 +1,18 @@
 digraph G {
-"base_link" -> "front_left_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 68.732\nBuffer length: 5.078\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.372013\n"];
+"base_link" -> "front_left_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 69.029\nBuffer length: 5.027\nMost recent transform: 1751125102.537637\nOldest transform: 1751125097.510764\n"];
 "base_footprint" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
-"base_link" -> "front_right_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 68.732\nBuffer length: 5.078\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.372013\n"];
-"base_link" -> "rear_left_wheel"[label=" Broadcaster: default_authority\nAverage rate: 68.766\nBuffer length: 5.061\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.389092\n"];
-"base_link" -> "rear_right_wheel"[label=" Broadcaster: default_authority\nAverage rate: 68.766\nBuffer length: 5.061\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.389092\n"];
-"front_left_steering_link" -> "front_left_wheel"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.449695\n"];
-"front_right_steering_link" -> "front_right_wheel"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1750878028.449703\nOldest transform: 1750878023.449695\n"];
-"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 50.83\nBuffer length: 4.997\nMost recent transform: 172.601\nOldest transform: 167.604\n"];
-"odom" -> "base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 10.206\nBuffer length: 4.997\nMost recent transform: 172.401\nOldest transform: 167.404\n"];
+"front_left_steering_link" -> "front_left_wheel"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1751125102.510749\nOldest transform: 1751125097.510764\n"];
+"base_link" -> "front_right_steering_link"[label=" Broadcaster: default_authority\nAverage rate: 69.029\nBuffer length: 5.027\nMost recent transform: 1751125102.537637\nOldest transform: 1751125097.510764\n"];
+"front_right_steering_link" -> "front_right_wheel"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1751125102.510749\nOldest transform: 1751125097.510764\n"];
+"base_link" -> "rear_left_wheel"[label=" Broadcaster: default_authority\nAverage rate: 69.029\nBuffer length: 5.027\nMost recent transform: 1751125102.537637\nOldest transform: 1751125097.510764\n"];
+"base_link" -> "rear_right_wheel"[label=" Broadcaster: default_authority\nAverage rate: 69.029\nBuffer length: 5.027\nMost recent transform: 1751125102.537637\nOldest transform: 1751125097.510764\n"];
+"odom" -> "base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 10.978\nBuffer length: 4.919\nMost recent transform: 157.652\nOldest transform: 152.733\n"];
 "base_link" -> "depth_camera_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
 "base_link" -> "imu_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
 "base_link" -> "lidar_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 50.01\nBuffer length: 5.019\nMost recent transform: 157.852\nOldest transform: 152.833\n"];
 edge [style=invis];
  subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
-"Recorded at time: 1750878028.4908638"[ shape=plaintext ] ;
+"Recorded at time: 1751125102.5479467"[ shape=plaintext ] ;
 }->"map";
 }

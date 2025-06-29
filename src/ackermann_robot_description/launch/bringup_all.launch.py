@@ -108,6 +108,8 @@ def generate_launch_description():
             ]
         ),
 
+
+
         # 3) Launch Ackermann Bridge (delay slightly if needed)
         TimerAction(
             period=5.0,
@@ -140,11 +142,11 @@ def generate_launch_description():
         ),
 
         # 5) Launch EKF for localization
-        # Node(
-        #     package='robot_localization',
-        #     executable='ekf_node',
-        #     name='ekf_filter_node',  # Changed to match the name you're looking for
-        #     output='screen',
-        #     parameters=[ekf_yaml, {'use_sim_time': True}],
-        # ),
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            output='screen',
+            parameters=[ekf_yaml, {'use_sim_time': True}],
+        ),
     ])
